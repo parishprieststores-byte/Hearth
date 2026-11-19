@@ -84,7 +84,8 @@ function modal(html){const d=$('#dlg'),prev=document.activeElement;d.innerHTML=`
  const k=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',k);
  d.onclick=e=>{if(e.target===d)close()};const f=$('input',d);f&&f.focus();return{el:d,close}}
 
-if(CFG.apiKey.startsWith('YOUR')){view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Setup needed</h1><p>Hearth needs your Firebase project. Open index.html, paste your web app config into <b>CFG</b>, publish firestore.rules, and enable Email/Password sign-in. Steps are in NOTES.md.</p></main>`)}
+if(typeof firebase==='undefined'){view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Can't load</h1><p>The Firebase scripts did not load. Open the published site in a normal browser with an internet connection, not a file preview.</p></main>`)}
+else if(CFG.apiKey.startsWith('YOUR')){view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Setup needed</h1><p>Hearth needs your Firebase project. Open index.html, paste your web app config into <b>CFG</b>, publish firestore.rules, and enable Email/Password sign-in. Steps are in NOTES.md.</p></main>`)}
 else{
 firebase.initializeApp(CFG);
 const auth=firebase.auth(),db=firebase.firestore(),FV=firebase.firestore.FieldValue;
