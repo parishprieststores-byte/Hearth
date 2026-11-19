@@ -45,7 +45,12 @@ label input{height:46px;border-radius:12px;border:1.5px solid var(--bd);backgrou
 .res{overflow-y:auto;min-height:60px}.res .row{padding:8px 4px;min-height:56px}.res .row.s{background:var(--mine)}
 .acts{display:flex;justify-content:flex-end;gap:8px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:90%}#toast.o{opacity:1}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.rb{display:flex;align-items:center;gap:10px;flex:1;min-height:44px;padding-left:8px}.rb[hidden]{display:none}
+.comp.rec>:not(.rb){display:none}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--er);animation:pl 1s infinite alternate}@keyframes pl{to{opacity:.3}}
+.vn{display:flex;align-items:center;gap:8px;min-width:210px}.vn .pl{width:40px;height:40px;background:var(--ac);color:var(--on)}
+.pb{flex:1;height:4px;border-radius:2px;background:var(--bd);overflow:hidden}.pb i{display:block;height:100%;width:0;background:var(--ac)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></symbol>
@@ -56,6 +61,11 @@ label input{height:46px;border-radius:12px;border:1.5px solid var(--bd);backgrou
 <symbol id="i-theme" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></symbol>
 <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="i-belloff" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0M2 2l20 20"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
 </defs></svg>
 <div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -77,6 +87,13 @@ const mq=matchMedia('(prefers-color-scheme:dark)');
 function applyTheme(){let t=null;try{t=localStorage.getItem('hearth-theme')}catch(e){}document.documentElement.dataset.theme=t||(mq.matches?'dark':'light')}
 function flipTheme(){const n=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('hearth-theme',n)}catch(e){}applyTheme()}
 mq.addEventListener('change',applyTheme);applyTheme();
+
+/* ---- sound ---- */
+let ac=null,muted=false;try{muted=localStorage.getItem('hearth-mute')==='1'}catch(e){}
+function unlock(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
+['touchstart','click','keydown'].forEach(t=>addEventListener(t,unlock,{passive:true}));
+function ping(){if(muted||!ac)return;try{const t=ac.currentTime;[880,1175].forEach((f,i)=>{const s=t+i*.12,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.25,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+.35)})}catch(e){}}
+function toggleMute(){muted=!muted;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}const b=$('#mu');if(b){b.innerHTML=ic(muted?'belloff':'bell');b.setAttribute('aria-label',muted?'Unmute sounds':'Mute sounds')}toast(muted?'Sounds muted':'Sounds on');if(!muted)ping()}
 
 /* ---- modal ---- */
 function modal(html){const d=$('#dlg'),prev=document.activeElement;d.innerHTML=`<div class="card" role="dialog" aria-modal="true">${html}</div>`;d.classList.add('o');
@@ -116,13 +133,16 @@ auth.onAuthStateChanged(u=>{me=u;unList&&unList();unList=null;
 
 /* ---- chat list ---- */
 const cname=c=>c.isGroup?c.title:(c.names[c.members.find(x=>x!==me.uid)]||'Chat');
-function listenChats(){unList&&unList();
+let prevUn={},primed=false;
+function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0))hit=c;prevUn[c.id]=u});
+ if(hit){ping();if(!cur||cur.id!==hit.id)toast('New message from '+cname(hit))}if(!fromCache)primed=true}
+function listenChats(){unList&&unList();prevUn={};primed=false;
  unList=db.collection('chats').where('members','array-contains',me.uid).onSnapshot(s=>{
-  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));paintList()},
+  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);paintList()},
   ()=>toast('Could not load chats. Check rules and connection.'))}
 function listView(){leaveChat();
- view(`<header class="bar"><h2>Hearth</h2><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div id="cl" class="list"></div><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
- $('#th').onclick=flipTheme;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;paintList()}
+ view(`<header class="bar"><h2>Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div id="cl" class="list"></div><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;paintList()}
 function paintList(){const el=$('#cl');if(!el)return;
  if(!chats.length){el.innerHTML='<p class="empty">No chats yet. Tap the + button to start one.</p>';return}
  el.innerHTML=chats.map(c=>{const n=cname(c),u=(c.unread||{})[me.uid]||0;
@@ -152,11 +172,11 @@ function newChat(){const sel=new Map();let found=[],dt;
   catch(x){toast('Could not create the chat.')}}}
 
 /* ---- chat screen ---- */
-function leaveChat(){unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
+function leaveChat(){stopRec(false);stopVN();unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
 function openChat(c,push=true){if(!c)return;cur=c;if(push)history.pushState({chat:c.id},'');
  view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button><span class="av" style="width:40px;height:40px">${esc(cname(c)[0]||'?').toUpperCase()}</span><div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div></header>
  <div id="ms" class="msgs"></div>
- <div class="comp"><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><input id="tx" type="text" autocomplete="off" aria-label="Message" enterkeyhint="send"><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
+ <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><input id="tx" type="text" autocomplete="off" aria-label="Message" enterkeyhint="send"><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
  const cr=db.collection('chats').doc(c.id);
  $('#bk').onclick=()=>history.back();
  unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};
@@ -167,21 +187,50 @@ function openChat(c,push=true){if(!c)return;cur=c;if(push)history.pushState({cha
  const send=()=>{const v=$('#tx').value.trim();if(!v)return;$('#tx').value='';post(v,null)};
  $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter')send()};
  $('#tx').oninput=()=>{if(Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
- $('#im').onclick=()=>$('#fi').click();
+ $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=vnClick;
  $('#fi').onchange=e=>{const f=e.target.files[0];if(f)shrink(f).then(d=>post('',d)).catch(()=>toast('That image could not be read.'))}}
 function shrink(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,800/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.6))};i.onerror=no;i.src=u})}
-function post(text,img){const cr=db.collection('chats').doc(cur.id),b=db.batch();
- b.set(cr.collection('messages').doc(),{from:me.uid,text,img,at:FV.serverTimestamp(),readBy:[me.uid]});
- const up={lastText:text||'Photo',lastAt:FV.serverTimestamp()};cur.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
+function post(text,img,aud){const cr=db.collection('chats').doc(cur.id),b=db.batch();
+ b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,at:FV.serverTimestamp(),readBy:[me.uid]});
+ const up={lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};cur.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
  b.update(cr,up);b.commit().catch(()=>toast('Could not send that message.'))}
 function paintMsgs(s){const el=$('#ms');if(!el)return;const near=el.scrollHeight-el.scrollTop-el.clientHeight<120;
  el.innerHTML=s.docs.map(d=>{const m=d.data(),mine=m.from===me.uid,pend=d.metadata.hasPendingWrites,seen=mine&&cur.members.some(u=>u!==me.uid&&(m.readBy||[]).includes(u));
   const tk=mine?`<span class="tk ${seen?'rd':''}" title="${pend?'Sending':seen?'Read':'Delivered'}">${ic('check')}${pend?'':ic('check')}</span>`:'';
-  return`<div class="m ${mine?'me':''}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${esc(m.text||'')}<span class="mt">${ftime(m.at)}${tk}</span></div>`}).join('');
- if(near||s.metadata.fromCache===false&&!el.dataset.k){el.scrollTop=el.scrollHeight;el.dataset.k=1}}
+  return`<div class="m ${mine?'me':''}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.audio?vn(d.id,m.audio):''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${esc(m.text||'')}<span class="mt">${ftime(m.at)}${tk}</span></div>`}).join('');
+ if(near||s.metadata.fromCache===false&&!el.dataset.k){el.scrollTop=el.scrollHeight;el.dataset.k=1}syncVN()}
 function markRead(s,cr){if(s.metadata.hasPendingWrites)return;const un=s.docs.filter(d=>d.data().from!==me.uid&&!(d.data().readBy||[]).includes(me.uid));
  if(un.length){const b=db.batch();un.forEach(d=>b.update(d.ref,{readBy:FV.arrayUnion(me.uid)}));b.commit().catch(()=>{})}
  if(((cur.unread||{})[me.uid]||0)>0)cr.update({['unread.'+me.uid]:0}).catch(()=>{})}
+
+/* ---- voice notes ---- */
+const vnData={},vnDur={};let rec=null,vnA=null,vnId=null;
+const fmtS=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
+function vn(id,a){vnData[id]=a.d;vnDur[id]=a.s;return`<div class="vn"><button class="ib pl" data-v="${id}" aria-label="Play voice note">${ic('play')}</button><span class="pb"><i></i></span><small>${fmtS(a.s)}</small></div>`}
+function info(t){const m=modal(`<h3>Voice notes</h3><p>${esc(t)}</p><div class="acts"><button class="pri" id="ix">Back to chat</button></div>`);$('#ix').onclick=m.close}
+function paintComp(){const c=$('.comp'),b=$('#rb');if(c)c.classList.toggle('rec',!!rec);if(b)b.hidden=!rec}
+async function startRec(){if(rec)return;
+ if(!navigator.mediaDevices||!window.MediaRecorder)return info('This browser cannot record audio. Try Chrome on Android or Safari on iPhone.');
+ try{const st=await navigator.mediaDevices.getUserMedia({audio:true});
+  const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm'].find(x=>MediaRecorder.isTypeSupported(x));
+  const r=new MediaRecorder(st,mime?{mimeType:mime,audioBitsPerSecond:24000}:{}),x={r,st,ch:[],t0:Date.now(),send:false};
+  r.ondataavailable=e=>{if(e.data.size)x.ch.push(e.data)};
+  r.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(x.iv);rec=null;paintComp();if(x.send)finishRec(x,r.mimeType)};
+  rec=x;r.start();x.iv=setInterval(()=>{const s=(Date.now()-x.t0)/1000,t=$('#rt');if(t)t.textContent=fmtS(s);if(s>=60)stopRec(true)},250);paintComp()}
+ catch(e){info('Microphone access is blocked. Allow the microphone for this site in your browser settings, then try again.')}}
+function stopRec(send){if(!rec||rec.r.state==='inactive')return;rec.send=send;rec.r.stop()}
+function finishRec(x,mime){const s=Math.round((Date.now()-x.t0)/1000);if(s<1)return toast('That voice note was too short.');
+ const fr=new FileReader();fr.onload=()=>{if(fr.result.length>900000)return toast('That voice note is too large to send.');post('',null,{d:fr.result,s})};
+ fr.readAsDataURL(new Blob(x.ch,{type:mime||'audio/webm'}))}
+function vnClick(e){const b=e.target.closest('.pl');if(!b)return;const id=b.dataset.v;
+ if(vnId===id&&vnA){if(vnA.paused)vnA.play();else vnA.pause();return}
+ stopVN();vnId=id;vnA=new Audio(vnData[id]);
+ vnA.ontimeupdate=syncVN;vnA.onpause=syncVN;vnA.onplay=syncVN;vnA.onended=stopVN;
+ vnA.play().catch(()=>{toast('Could not play that voice note.');stopVN()})}
+function stopVN(){if(vnA){vnA.onpause=vnA.onplay=vnA.ontimeupdate=vnA.onended=null;vnA.pause()}vnA=null;vnId=null;syncVN()}
+function syncVN(){document.querySelectorAll('.pl').forEach(b=>{const id=b.dataset.v,on=id===vnId&&vnA,pl=on&&!vnA.paused;
+ b.innerHTML=ic(pl?'pause':'play');b.setAttribute('aria-label',pl?'Pause voice note':'Play voice note');
+ const i=b.parentNode.querySelector('.pb i');if(i)i.style.width=on?Math.min(100,vnA.currentTime/(vnDur[id]||1)*100)+'%':'0'})}
 
 /* ---- navigation ---- */
 history.replaceState({},'');
