@@ -20,7 +20,7 @@ button,input{font:inherit;color:inherit}button{background:none;border:0;cursor:p
 .mid{flex:1;min-width:0}.mid b,.mid small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mid small,.rt small{color:var(--mu)}
 .rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.bd{font-style:normal;background:var(--ac);color:var(--on);border-radius:99px;min-width:22px;padding:0 7px;text-align:center;font-size:.8rem;font-weight:700}
 .empty{padding:40px 24px;text-align:center;color:var(--mu)}
-.fab{position:fixed;right:max(20px,calc(50% - 340px));bottom:calc(20px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:20px;background:var(--ac);color:var(--on);display:grid;place-items:center;box-shadow:0 6px 16px #0003}
+.fab{position:fixed;right:max(20px,calc(50% - 340px));bottom:calc(78px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:20px;background:var(--ac);color:var(--on);display:grid;place-items:center;box-shadow:0 6px 16px #0003}
 .fab:active{transform:scale(.94)}
 .msgs{padding:12px;display:flex;flex-direction:column;gap:6px}
 .m{max-width:80%;padding:8px 12px;border-radius:16px 16px 16px 4px;background:var(--sf);border:1px solid var(--bd);align-self:flex-start;word-break:break-word;white-space:pre-wrap}
@@ -66,6 +66,15 @@ input{-webkit-user-select:text;user-select:text}
 .sheet button{display:flex;align-items:center;min-height:48px;width:100%;text-align:left;padding:0 8px;font-weight:600}.sheet button:active{background:var(--bd)}
 .emo{display:flex;justify-content:space-around}.emo button{width:48px;height:48px;font-size:1.6rem}
 .m.dl{font-style:italic;color:var(--mu)}.mt .ic{width:12px;height:12px}.rt .ic{width:16px;height:16px;color:var(--mu)}
+.tabs{display:flex;background:var(--sf);border-top:1px solid var(--bd)}
+.tabs button{flex:1;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.72rem;color:var(--mu)}.tabs button.on{color:var(--ac);font-weight:700}
+.chips[hidden],.fab[hidden]{display:none}
+.sh{padding:12px 16px 4px;font-size:.75rem;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+.prof{padding:20px;display:flex;flex-direction:column;gap:14px}.prof .av{width:88px;height:88px;border-radius:28px;font-size:2rem}#pa,#pp{align-self:center}
+select{font:inherit;color:inherit}label select{height:46px;border-radius:12px;border:1.5px solid var(--bd);background:var(--sf);padding:0 12px}
+.swr{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sw{width:52px;height:30px;border-radius:15px;background:var(--bd);position:relative;flex:none}.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--sf);box-shadow:0 1px 3px #0004;transition:transform .15s}.sw[aria-checked=true]{background:var(--ac)}.sw[aria-checked=true]::after{transform:translateX(22px)}
+.ring{display:inline-flex;border-radius:18px;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ac)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -88,6 +97,10 @@ input{-webkit-user-select:text;user-select:text}
 <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 7 3 3H7l3-3z"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-updates" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
 </defs></svg>
 <div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -107,8 +120,9 @@ let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('o'
 /* ---- names: any Unicode (styled text, emoji) ---- */
 const seg=s=>window.Intl&&Intl.Segmenter?[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(String(s))].map(x=>x.segment):Array.from(String(s));
 const clip=(s,n=40)=>seg(s).slice(0,n).join('');
-const av=(n,sz)=>{const g=seg(String(n).trim())[0]||'?',hue=Array.from(String(n)).reduce((a,c)=>(a*31+c.codePointAt(0))|0,7)%360;
- return`<span class="av" style="background:hsl(${Math.abs(hue)} 50% 40%)${sz?`;width:${sz}px;height:${sz}px`:''}">${esc(g.toUpperCase())}</span>`};
+const UP={};
+const av=(n,sz,uid)=>{const ph=uid&&UP[uid]&&UP[uid].photo,g=seg(String(n).trim())[0]||'?',hue=Array.from(String(n)).reduce((a,c)=>(a*31+c.codePointAt(0))|0,7)%360;
+ return`<span class="av" style="background:${ph?`url('${ph}') center/cover`:`hsl(${Math.abs(hue)} 50% 40%)`}${sz?`;width:${sz}px;height:${sz}px`:''}">${ph?'':esc(g.toUpperCase())}</span>`};
 document.addEventListener('gesturestart',e=>e.preventDefault());
 addEventListener('contextmenu',e=>{if(!e.target.closest('input'))e.preventDefault()});
 
@@ -167,13 +181,13 @@ const cname=c=>c.isGroup?c.title:c.members.length===1?'Saved messages':(c.names[
 let prevUn={},primed=false;
 function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0)&&!pf(c,'mute')&&!pf(c,'arch'))hit=c;prevUn[c.id]=u});
  if(hit){ping();if(!cur||cur.id!==hit.id)toast('New message from '+cname(hit))}if(!fromCache)primed=true}
-function listenChats(){unList&&unList();prevUn={};primed=false;
+function listenChats(){unList&&unList();prevUn={};primed=false;birthdayToday();
  unList=db.collection('chats').where('members','array-contains',me.uid).onSnapshot(s=>{
-  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);paintList()},
+  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);loadPhotos();paintList()},
   ()=>toast('Could not load chats. Check rules and connection.'))}
 function listView(){leaveChat();
- view(`<header class="bar"><h2>Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
- $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));paintChips();paintList()}
+ view(`<header class="bar"><h2 id="ttl">Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><nav class="tabs" aria-label="Sections">${[['chats','chat','Chats'],['updates','updates','Updates'],['bdays','gift','Birthdays'],['profile','user','Profile']].map(([k,i,t])=>`<button data-t="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</nav><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));showTab(tab)}
 let lf='all';
 const pf=(c,k)=>(c[k]||{})[me.uid];
 const vis=c=>{const u=(c.unread||{})[me.uid]||0;if(lf==='arch')return pf(c,'arch');if(pf(c,'arch'))return false;return lf==='unread'?u>0:lf==='groups'?c.isGroup:true};
@@ -192,18 +206,93 @@ function holdBind(el){let t,fired=false,x0=0,y0=0;
 function paintChips(){const el=$('#ch');if(!el)return;
  el.innerHTML=[['all','All'],['unread','Unread'],['groups','Groups'],['arch','Archived']].map(([k,t])=>`<button class="chip${lf===k?' on':''}" data-f="${k}" aria-pressed="${lf===k}">${t}</button>`).join('');
  el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{lf=b.dataset.f;paintChips();paintList()})}
-function paintList(){const el=$('#cl');if(!el)return;const L=chats.filter(vis).sort((a,b)=>!!pf(b,'pin')-!!pf(a,'pin'));
+function paintList(){const el=$('#cl');if(!el||tab!=='chats')return;const L=chats.filter(vis).sort((a,b)=>!!pf(b,'pin')-!!pf(a,'pin'));
  if(!L.length){el.innerHTML=`<p class="empty">${chats.length?'Nothing in this view.':'No chats yet. Tap the + button to start one.'}</p>`;return}
  el.innerHTML=L.map(c=>{const n=cname(c),u=(c.unread||{})[me.uid]||0;
-  return`<button class="row${u?' un':''}" data-id="${c.id}">${av(n)}<span class="mid"><b>${esc(n)}</b><small>${c.lastFrom===me.uid&&c.lastText?'You: ':''}${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small><span style="display:flex;gap:4px;align-items:center">${pf(c,'pin')?ic('pin'):''}${pf(c,'mute')?ic('belloff'):''}${u?`<i class="bd">${u}</i>`:''}</span></span></button>`}).join('');
+  return`<button class="row${u?' un':''}" data-id="${c.id}">${av(n,0,c.isGroup?null:c.members.find(x=>x!==me.uid))}<span class="mid"><b>${esc(n)}</b><small>${c.lastFrom===me.uid&&c.lastText?'You: ':''}${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small><span style="display:flex;gap:4px;align-items:center">${pf(c,'pin')?ic('pin'):''}${pf(c,'mute')?ic('belloff'):''}${u?`<i class="bd">${u}</i>`:''}</span></span></button>`}).join('');
  el.querySelectorAll('.row').forEach(b=>b.onclick=()=>openChat(chats.find(c=>c.id===b.dataset.id)))}
+
+/* ---- tabs, profile, birthdays, updates ---- */
+let tab='chats',unUpd=null;
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const mdOf=d=>(d.getMonth()+1)*100+d.getDate();
+const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h ago'};
+const live=u=>(u.updates||[]).filter(x=>Date.now()-x.at<864e5);
+function showTab(t){tab=t;if(unUpd){unUpd();unUpd=null}
+ $('#ttl').textContent={chats:'Hearth',updates:'Updates',bdays:'Birthdays',profile:'Profile'}[t];
+ document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
+ $('#ch').hidden=t!=='chats';$('#fab').hidden=t!=='chats';
+ if(t==='chats'){paintChips();paintList()}else if(t==='updates')renderUpdates();else if(t==='bdays')renderBdays();else renderProfile()}
+async function loadPhotos(){const ids=[...new Set(chats.filter(c=>!c.isGroup).map(c=>c.members.find(x=>x!==me.uid)).filter(x=>x&&!(x in UP)))];
+ for(let i=0;i<ids.length;i+=10){const ch=ids.slice(i,i+10);ch.forEach(x=>UP[x]={});
+  try{const s=await db.collection('users').where(firebase.firestore.FieldPath.documentId(),'in',ch).get();s.docs.forEach(d=>UP[d.id]={photo:d.data().photo||null})}catch(e){ch.forEach(x=>delete UP[x])}}
+ if(ids.length)paintList()}
+async function openDirect(u,pre,after){try{const members=[me.uid,u.id].sort(),ref=db.collection('chats').doc(members.join('_'));let s=await ref.get();
+ if(!s.exists){await ref.set({members,names:{[me.uid]:myName(),[u.id]:u.name},isGroup:false,title:'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});s=await ref.get()}
+ openChat({id:ref.id,...s.data()});if(pre){const t=$('#tx');if(t){t.value=pre;t.focus()}}if(after)after()}catch(e){toast('Could not open that chat.')}}
+function thumb(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const s=Math.min(i.width,i.height),c=document.createElement('canvas');c.width=c.height=160;c.getContext('2d').drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,160,160);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.7))};i.onerror=no;i.src=u})}
+/* profile */
+async function renderProfile(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';let d={};
+ try{d=(await db.collection('users').doc(me.uid).get()).data()||{}}catch(e){}
+ if(tab!=='profile')return;let ph=d.photo||null,share=!!d.bmd;UP[me.uid]={photo:ph};
+ el.innerHTML=`<div class="prof"><div id="pa">${av(myName(),88,me.uid)}</div><button class="ghost" id="pp">Change photo</button><input id="pf" type="file" accept="image/*" hidden><h3 style="text-align:center">${esc(myName())}</h3>
+ <label><span>About</span><input id="ab" maxlength="120"></label>
+ <label><span>Birthday month</span><select id="bm"><option value="0">Not set</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select></label>
+ <label><span>Birthday day</span><select id="bdy">${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}</select></label>
+ <div class="swr"><span>Share my birthday with other Hearth users</span><button type="button" class="sw" id="bs" role="switch" aria-checked="${share}" aria-label="Share my birthday"></button></div>
+ <button class="pri" id="sp">Save profile</button></div>`;
+ $('#ab').value=d.about||'';$('#bm').value=String(d.bmd?Math.floor(d.bmd/100):0);$('#bdy').value=String(d.bmd?d.bmd%100:1);
+ $('#pp').onclick=()=>$('#pf').click();
+ $('#pf').onchange=e=>{const f=e.target.files[0];if(f)thumb(f).then(u=>{ph=u;UP[me.uid]={photo:u};$('#pa').innerHTML=av(myName(),88,me.uid)}).catch(()=>toast('That image could not be read.'))};
+ $('#bs').onclick=()=>{share=!share;$('#bs').setAttribute('aria-checked',String(share))};
+ $('#sp').onclick=async()=>{const m=+$('#bm').value,dd=+$('#bdy').value,up={about:$('#ab').value.trim(),photo:ph};
+  if(share&&!m)return toast('Choose your birthday month first, or switch sharing off.');
+  if(m&&dd>new Date(2024,m,0).getDate())return toast('That day does not exist in that month.');
+  up.bmd=share?m*100+dd:FV.delete();
+  try{await db.collection('users').doc(me.uid).set(up,{merge:true});toast('Profile saved')}catch(e){toast('Could not save your profile.')}}}
+/* birthdays */
+async function bdQuery(a,b){const s=await db.collection('users').where('bmd','>=',a).where('bmd','<=',b).get();return s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}))}
+async function renderBdays(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';const now=new Date(),a=mdOf(now),b=mdOf(new Date(now.getTime()+30*864e5));let L=[];
+ try{L=b>=a?await bdQuery(a,b):[...await bdQuery(a,1231),...await bdQuery(101,b)]}catch(e){if(tab==='bdays')el.innerHTML='<p class="empty">Could not load birthdays. Check your connection.</p>';return}
+ if(tab!=='bdays')return;const t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ L.forEach(u=>{UP[u.id]=u;let t=new Date(now.getFullYear(),Math.floor(u.bmd/100)-1,u.bmd%100);if(t<t0)t=new Date(now.getFullYear()+1,t.getMonth(),t.getDate());u.when=t;u.days=Math.round((t-t0)/864e5)});
+ L.sort((x,y)=>x.days-y.days);
+ const sec=(t,f)=>{const r=L.filter(f);return r.length?`<h4 class="sh">${t}</h4>`+r.map(u=>`<div class="row" style="cursor:default">${av(u.name,0,u.id)}<span class="mid"><b>${esc(u.name)}</b><small>${u.when.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})}</small></span><button class="pri" data-g="${u.id}" style="min-height:40px">Send greeting</button></div>`).join(''):''};
+ el.innerHTML=(sec('Today',u=>u.days===0)+sec('Next 7 days',u=>u.days>0&&u.days<=7)+sec('Next 30 days',u=>u.days>7))||'<p class="empty">No shared birthdays in the next 30 days. You can share yours in Profile.</p>';
+ el.querySelectorAll('[data-g]').forEach(bt=>bt.onclick=()=>{const u=L.find(x=>x.id===bt.dataset.g);openDirect(u,'Happy birthday, '+u.name+'!')})}
+async function birthdayToday(){const k='hearth-bd-'+new Date().toDateString();
+ try{if(localStorage.getItem(k))return;const s=await db.collection('users').where('bmd','==',mdOf(new Date())).get(),n=s.docs.filter(d=>d.id!==me.uid).map(d=>d.data().name);
+  if(n.length){toast('Birthday today: '+n.slice(0,3).join(', ')+(n.length>3?' and more':''));localStorage.setItem(k,'1')}}catch(e){}}
+/* updates (24 hours, stored on the poster's own profile) */
+function renderUpdates(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';
+ unUpd=db.collection('users').where('updAt','>',Date.now()-864e5).orderBy('updAt','desc').limit(50).onSnapshot(s=>{
+  const box=$('#cl');if(tab!=='updates'||!box)return;const L=s.docs.map(d=>({id:d.id,...d.data()})).filter(u=>live(u).length);L.forEach(u=>UP[u.id]=u);
+  const mine=L.find(u=>u.id===me.uid),others=L.filter(u=>u.id!==me.uid);
+  const row=(u,self)=>`<button class="row" data-u="${u.id}"><span class="ring">${av(self?'You':u.name,0,u.id)}</span><span class="mid"><b>${esc(self?'My updates':u.name)}</b><small>${live(u).length} update${live(u).length>1?'s':''} · ${ago(u.updAt)}</small></span></button>`;
+  box.innerHTML=`<div class="prof" style="padding-bottom:4px"><button class="pri" id="np">Post an update</button></div>`+(mine?row(mine,true):'')+(others.length?'<h4 class="sh">Recent updates</h4>'+others.map(u=>row(u)).join(''):'')+(!mine&&!others.length?'<p class="empty">No updates in the last 24 hours.</p>':'');
+  $('#np').onclick=postUpdate;box.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>viewUpdates(L.find(u=>u.id===b.dataset.u)))},
+  ()=>{if(tab==='updates'&&$('#cl'))$('#cl').innerHTML='<p class="empty">Could not load updates. Check your connection.</p>'})}
+function postUpdate(){let img=null;
+ const x=modal(`<h3>New update</h3><label><span>What is new?</span><input id="ut" maxlength="200" autocomplete="off"></label><input id="ui" type="file" accept="image/*" hidden><div class="acts" style="justify-content:space-between"><button class="ghost" id="up">Add photo</button><span id="un" style="color:var(--mu)"></span></div><div class="acts"><button class="ghost" id="uc">Cancel</button><button class="pri" id="ug">Post for 24 hours</button></div>`);
+ $('#up').onclick=()=>$('#ui').click();$('#uc').onclick=x.close;
+ $('#ui').onchange=e=>{const f=e.target.files[0];if(f)shrink(f,600,.5).then(d=>{img=d;$('#un').textContent='Photo added'}).catch(()=>toast('That image could not be read.'))};
+ $('#ug').onclick=async()=>{const t=$('#ut').value.trim();if(!t&&!img)return toast('Write something or add a photo.');
+  try{const ref=db.collection('users').doc(me.uid),d=(await ref.get()).data()||{},arr=live(d).concat([{id:String(Date.now()),t,img,at:Date.now()}]).slice(-6);
+   if(JSON.stringify(arr).length>900000)return toast('Too many photos in your updates. Delete an older one first.');
+   await ref.set({updates:arr,updAt:Date.now()},{merge:true});x.close();toast('Update posted')}catch(e){toast('Could not post your update.')}}}
+function viewUpdates(u){if(!u)return;const self=u.id===me.uid,L=live(u).slice().reverse();
+ const x=modal(`<h3>${esc(self?'My updates':u.name)}</h3><div class="res">${L.map(v=>`<div class="m" style="max-width:100%;margin-bottom:8px">${v.img?`<img src="${v.img}" alt="Update photo">`:''}${esc(v.t||'')}<span class="mt">${ago(v.at)}</span><div style="margin-top:6px">${self?`<button class="ghost" data-d="${v.id}">Delete</button>`:`<button class="ghost" data-r="${v.id}">Reply</button>`}</div></div>`).join('')}</div><div class="acts"><button class="pri" id="uv">Close</button></div>`);
+ $('#uv').onclick=x.close;
+ x.el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const v=L.find(y=>y.id===b.dataset.r);x.close();openDirect(u,'',()=>{replyTo={id:v.id,name:u.name,text:v.t||'Photo update'};paintReply();$('#tx').focus()})});
+ x.el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{x.close();confirmD('Delete this update?','It disappears for everyone straight away.','Delete update',async()=>{
+  try{const arr=live(u).filter(y=>y.id!==b.dataset.d);await db.collection('users').doc(me.uid).set({updates:arr,updAt:arr.length?arr[arr.length-1].at:0},{merge:true})}catch(e){toast('Could not delete the update.')}})})}
 
 /* ---- new chat / group ---- */
 function newChat(){const sel=new Map();let found=[],dt;
  const m=modal(`<h3>New chat</h3><label><span>Find people by name</span><input id="q" autocomplete="off"></label><button class="row" id="sv" style="min-height:56px;padding:8px 4px">${av('Saved messages')}<span class="mid"><b>Saved messages</b><small>Notes and files for yourself</small></span></button><div id="res" class="res"></div>
  <label id="gt" hidden><span>Group name</span><input id="gn" maxlength="40"></label>
  <div class="acts"><button class="ghost" id="cx">Close</button><button class="pri" id="go" disabled>Start chat</button></div>`);
- const paint=()=>{$('#res').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}">${av(u.name)}<span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
+ const paint=()=>{$('#res').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}">${av(u.name,0,u.id)}<span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
   $('#res').querySelectorAll('.row').forEach(b=>b.onclick=()=>{const u=found.find(x=>x.id===b.dataset.id);sel.has(u.id)?sel.delete(u.id):sel.set(u.id,u);paint()});
   const g=sel.size>1;$('#gt').hidden=!g;$('#go').disabled=!sel.size;$('#go').textContent=g?'Create group':'Start chat'};
  paint();$('#cx').onclick=m.close;
@@ -213,7 +302,7 @@ function newChat(){const sel=new Map();let found=[],dt;
  $('#q').oninput=e=>{clearTimeout(dt);const q=e.target.value.trim().normalize('NFKC').toLowerCase();
   dt=setTimeout(async()=>{if(!q){found=[...sel.values()];return paint()}
    try{const s=await db.collection('users').where('nameLower','>=',q).where('nameLower','<=',q+'\uf8ff').limit(15).get();
-    found=s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}));sel.forEach(u=>{if(!found.some(f=>f.id===u.id))found.push(u)});paint()}
+    found=s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}));found.forEach(u=>UP[u.id]=u);sel.forEach(u=>{if(!found.some(f=>f.id===u.id))found.push(u)});paint()}
    catch(x){toast('Search failed. Are you online?')}},300)};
  $('#go').onclick=async()=>{const us=[...sel.values()],members=[me.uid,...us.map(u=>u.id)],names={[me.uid]:myName()};us.forEach(u=>names[u.id]=u.name);
   try{let ref,doc;
@@ -225,8 +314,8 @@ function newChat(){const sel=new Map();let found=[],dt;
 
 /* ---- chat screen ---- */
 function leaveChat(){stopRec(false);stopVN();replyTo=null;flt={q:'',star:false};lastSnap=null;unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
-function openChat(c,push=true){if(!c)return;cur=c;flt={q:'',star:false};replyTo=null;lastSnap=null;openUn=(c.unread||{})[me.uid]||0;if(push)history.pushState({chat:c.id},'');
- view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40)}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header>
+function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}flt={q:'',star:false};replyTo=null;lastSnap=null;openUn=(c.unread||{})[me.uid]||0;if(push)history.pushState({chat:c.id},'');
+ view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40,c.isGroup?null:c.members.find(x=>x!==me.uid))}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header>
  <div id="sr" class="rpl" hidden><label style="flex:1"><span>Search this chat</span><input id="sq" autocomplete="off"></label><button class="ghost" id="sx">Done</button></div>
  <div id="ms" class="msgs"></div><div id="rp" class="rpl" hidden></div>
  <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><input id="tx" type="text" autocomplete="off" aria-label="Message" enterkeyhint="send"><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
@@ -242,7 +331,7 @@ function openChat(c,push=true){if(!c)return;cur=c;flt={q:'',star:false};replyTo=
  $('#tx').oninput=()=>{if(Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
  $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=e=>{if(e.target.closest('.pl'))return vnClick(e);const b=e.target.closest('.m');if(b&&b.dataset.id)msgMenu(b.dataset.id)};$('#mo').onclick=chatOptions;$('#sq').oninput=e=>{flt.q=e.target.value;if(lastSnap)paintMsgs(lastSnap)};$('#sx').onclick=()=>{flt.q='';$('#sq').value='';$('#sr').hidden=true;if(lastSnap)paintMsgs(lastSnap)};paintReply();
  $('#fi').onchange=e=>{const f=e.target.files[0];if(f)shrink(f).then(d=>post('',d)).catch(()=>toast('That image could not be read.'))}}
-function shrink(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,800/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.6))};i.onerror=no;i.src=u})}
+function shrink(f,mx=800,q=.6){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,mx/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};i.onerror=no;i.src=u})}
 function postTo(c,text,img,aud,fwd,rep){const cr=db.collection('chats').doc(c.id),b=db.batch();
  b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid]});
  const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});

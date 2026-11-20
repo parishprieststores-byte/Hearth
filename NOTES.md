@@ -15,3 +15,7 @@ v5 (Phase 1 + part of Phase 2): tap a message for reply/react/copy/forward/star/
 Republish firestore.rules (changed: members may update readBy/reactions/starredBy/hiddenFor; sender may edit/delete own).
 Residual risk: any member can alter another member's reaction/hide/star entries (rules cannot restrict per-user map keys cheaply).
 NOT built yet: profile photo/about, online/last seen, group admin tools (add/remove/rename, group photo). Nothing runtime-tested.
+
+v6: bottom tabs (Chats/Updates/Birthdays/Profile); profile (photo, about, birthday + sharing switch); Birthdays tab (today/7/30 days, send greeting, once-a-day toast); Updates tab (24h text/photo updates stored on the poster's users doc, max 6, reply via chat). firestore.rules UNCHANGED from v5 (keep v5 rules).
+Privacy: everything in users docs (name, email, about, photo, birthday if shared, updates) is readable by every signed-in user. Birthday sharing off = nothing stored, so the month/day are not remembered.
+Not built: channels, view counts, reactions on updates (need rules), Telegram-style shell, online/last seen, group admin. Nothing runtime-tested.
