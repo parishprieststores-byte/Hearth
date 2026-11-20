@@ -56,6 +56,16 @@ input{-webkit-user-select:text;user-select:text}
 .pw{position:relative}.pw input{width:100%;padding-right:50px}.pw .ib{position:absolute;right:1px;top:1px}
 .av{font-size:1.15rem;line-height:1;color:#fff}
 .mid b{font-size:1.05rem;font-weight:700}.row.un .mid small{color:var(--tx);font-weight:600}.row.un .rt small{color:var(--ac);font-weight:700}
+.msgs{background-image:radial-gradient(var(--bd) 1px,transparent 1px);background-size:22px 22px}
+.chips{display:flex;gap:8px;padding:8px 12px;overflow-x:auto;background:var(--sf);border-bottom:1px solid var(--bd)}
+.chip{min-height:36px;padding:0 14px;border-radius:18px;border:1.5px solid var(--bd);font-weight:600;white-space:nowrap}.chip.on{background:var(--mine);border-color:var(--ac)}
+.day,.ud{align-self:center;font-size:.75rem;color:var(--mu);background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:2px 10px;margin:6px 0}.ud{color:var(--ac);font-weight:700}
+.q{border-left:3px solid var(--ac);background:#0001;border-radius:6px;padding:4px 8px;margin-bottom:4px;font-size:.85rem}.q b{display:block;color:var(--ac)}.q span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rx{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.rx i{font-style:normal;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:0 6px;font-size:.85rem}
+.rpl{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--sf);border-top:1px solid var(--bd)}.rpl[hidden]{display:none}.rpl .q{flex:1;margin:0;min-width:0}
+.sheet button{display:flex;align-items:center;min-height:48px;width:100%;text-align:left;padding:0 8px;font-weight:600}.sheet button:active{background:var(--bd)}
+.emo{display:flex;justify-content:space-around}.emo button{width:48px;height:48px;font-size:1.6rem}
+.m.dl{font-style:italic;color:var(--mu)}.mt .ic{width:12px;height:12px}.rt .ic{width:16px;height:16px;color:var(--mu)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -74,6 +84,10 @@ input{-webkit-user-select:text;user-select:text}
 <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
 <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
 <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3 6.9 7.5.6-5.7 4.9 1.8 7.3L12 17.8 5.4 21.7l1.8-7.3L1.5 9.5 9 8.9z"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 7 3 3H7l3-3z"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></symbol>
 </defs></svg>
 <div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -149,32 +163,53 @@ auth.onAuthStateChanged(u=>{me=u;unList&&unList();unList=null;
  if(u){listenChats();listView()}else{chats=[];cur=null;authView()}});
 
 /* ---- chat list ---- */
-const cname=c=>c.isGroup?c.title:(c.names[c.members.find(x=>x!==me.uid)]||'Chat');
+const cname=c=>c.isGroup?c.title:c.members.length===1?'Saved messages':(c.names[c.members.find(x=>x!==me.uid)]||'Chat');
 let prevUn={},primed=false;
-function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0))hit=c;prevUn[c.id]=u});
+function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0)&&!pf(c,'mute')&&!pf(c,'arch'))hit=c;prevUn[c.id]=u});
  if(hit){ping();if(!cur||cur.id!==hit.id)toast('New message from '+cname(hit))}if(!fromCache)primed=true}
 function listenChats(){unList&&unList();prevUn={};primed=false;
  unList=db.collection('chats').where('members','array-contains',me.uid).onSnapshot(s=>{
   chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);paintList()},
   ()=>toast('Could not load chats. Check rules and connection.'))}
 function listView(){leaveChat();
- view(`<header class="bar"><h2>Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div id="cl" class="list"></div><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
- $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;paintList()}
-function paintList(){const el=$('#cl');if(!el)return;
- if(!chats.length){el.innerHTML='<p class="empty">No chats yet. Tap the + button to start one.</p>';return}
- el.innerHTML=chats.map(c=>{const n=cname(c),u=(c.unread||{})[me.uid]||0;
-  return`<button class="row${u?' un':''}" data-id="${c.id}">${av(n)}<span class="mid"><b>${esc(n)}</b><small>${c.lastFrom===me.uid&&c.lastText?'You: ':''}${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small>${u?`<i class="bd">${u}</i>`:''}</span></button>`}).join('');
+ view(`<header class="bar"><h2>Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));paintChips();paintList()}
+let lf='all';
+const pf=(c,k)=>(c[k]||{})[me.uid];
+const vis=c=>{const u=(c.unread||{})[me.uid]||0;if(lf==='arch')return pf(c,'arch');if(pf(c,'arch'))return false;return lf==='unread'?u>0:lf==='groups'?c.isGroup:true};
+const setP=(c,k,v)=>db.collection('chats').doc(c.id).update({[k+'.'+me.uid]:v}).catch(()=>toast('Could not update that chat.'));
+const prefActs=c=>[[pf(c,'pin')?'Unpin chat':'Pin chat',()=>setP(c,'pin',!pf(c,'pin'))],[pf(c,'mute')?'Unmute chat':'Mute chat',()=>setP(c,'mute',!pf(c,'mute'))],[pf(c,'arch')?'Move out of archive':'Archive chat',()=>setP(c,'arch',!pf(c,'arch'))]];
+function sheet(acts,pre=''){const mo=modal(pre+'<div class="sheet">'+acts.map((a,i)=>`<button data-i="${i}">${esc(a[0])}</button>`).join('')+'</div>');
+ mo.el.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{mo.close();acts[b.dataset.i][1]()});return mo}
+function confirmD(t,body,label,fn){const m=modal(`<h3>${esc(t)}</h3><p>${esc(body)}</p><div class="acts"><button class="ghost" id="cn">Keep it</button><button class="pri" id="cy">${esc(label)}</button></div>`);$('#cn').onclick=m.close;$('#cy').onclick=()=>{m.close();fn()}}
+const chatMenu=id=>{const c=chats.find(x=>x.id===id);if(c)sheet(prefActs(c))};
+function holdBind(el){let t,fired=false,x0=0,y0=0;
+ el.addEventListener('pointerdown',e=>{const r=e.target.closest('.row');if(!r)return;fired=false;x0=e.clientX;y0=e.clientY;t=setTimeout(()=>{fired=true;chatMenu(r.dataset.id)},500)});
+ el.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-x0,e.clientY-y0)>10)clearTimeout(t)});
+ ['pointerup','pointercancel','pointerleave'].forEach(k=>el.addEventListener(k,()=>clearTimeout(t)));
+ el.addEventListener('click',e=>{if(fired){e.stopPropagation();e.preventDefault();fired=false}},true);
+ el.addEventListener('contextmenu',e=>{const r=e.target.closest('.row');if(r){e.preventDefault();chatMenu(r.dataset.id)}})}
+function paintChips(){const el=$('#ch');if(!el)return;
+ el.innerHTML=[['all','All'],['unread','Unread'],['groups','Groups'],['arch','Archived']].map(([k,t])=>`<button class="chip${lf===k?' on':''}" data-f="${k}" aria-pressed="${lf===k}">${t}</button>`).join('');
+ el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{lf=b.dataset.f;paintChips();paintList()})}
+function paintList(){const el=$('#cl');if(!el)return;const L=chats.filter(vis).sort((a,b)=>!!pf(b,'pin')-!!pf(a,'pin'));
+ if(!L.length){el.innerHTML=`<p class="empty">${chats.length?'Nothing in this view.':'No chats yet. Tap the + button to start one.'}</p>`;return}
+ el.innerHTML=L.map(c=>{const n=cname(c),u=(c.unread||{})[me.uid]||0;
+  return`<button class="row${u?' un':''}" data-id="${c.id}">${av(n)}<span class="mid"><b>${esc(n)}</b><small>${c.lastFrom===me.uid&&c.lastText?'You: ':''}${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small><span style="display:flex;gap:4px;align-items:center">${pf(c,'pin')?ic('pin'):''}${pf(c,'mute')?ic('belloff'):''}${u?`<i class="bd">${u}</i>`:''}</span></span></button>`}).join('');
  el.querySelectorAll('.row').forEach(b=>b.onclick=()=>openChat(chats.find(c=>c.id===b.dataset.id)))}
 
 /* ---- new chat / group ---- */
 function newChat(){const sel=new Map();let found=[],dt;
- const m=modal(`<h3>New chat</h3><label><span>Find people by name</span><input id="q" autocomplete="off"></label><div id="res" class="res"></div>
+ const m=modal(`<h3>New chat</h3><label><span>Find people by name</span><input id="q" autocomplete="off"></label><button class="row" id="sv" style="min-height:56px;padding:8px 4px">${av('Saved messages')}<span class="mid"><b>Saved messages</b><small>Notes and files for yourself</small></span></button><div id="res" class="res"></div>
  <label id="gt" hidden><span>Group name</span><input id="gn" maxlength="40"></label>
  <div class="acts"><button class="ghost" id="cx">Close</button><button class="pri" id="go" disabled>Start chat</button></div>`);
  const paint=()=>{$('#res').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}">${av(u.name)}<span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
   $('#res').querySelectorAll('.row').forEach(b=>b.onclick=()=>{const u=found.find(x=>x.id===b.dataset.id);sel.has(u.id)?sel.delete(u.id):sel.set(u.id,u);paint()});
   const g=sel.size>1;$('#gt').hidden=!g;$('#go').disabled=!sel.size;$('#go').textContent=g?'Create group':'Start chat'};
  paint();$('#cx').onclick=m.close;
+ $('#sv').onclick=async()=>{try{const ref=db.collection('chats').doc(me.uid+'_self');let s=await ref.get();
+  if(!s.exists){await ref.set({members:[me.uid],names:{[me.uid]:'Saved messages'},isGroup:false,title:'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});s=await ref.get()}
+  m.close();openChat({id:ref.id,...s.data()})}catch(x){toast('Could not open Saved messages.')}};
  $('#q').oninput=e=>{clearTimeout(dt);const q=e.target.value.trim().normalize('NFKC').toLowerCase();
   dt=setTimeout(async()=>{if(!q){found=[...sel.values()];return paint()}
    try{const s=await db.collection('users').where('nameLower','>=',q).where('nameLower','<=',q+'\uf8ff').limit(15).get();
@@ -189,10 +224,11 @@ function newChat(){const sel=new Map();let found=[],dt;
   catch(x){toast('Could not create the chat.')}}}
 
 /* ---- chat screen ---- */
-function leaveChat(){stopRec(false);stopVN();unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
-function openChat(c,push=true){if(!c)return;cur=c;if(push)history.pushState({chat:c.id},'');
- view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40)}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div></header>
- <div id="ms" class="msgs"></div>
+function leaveChat(){stopRec(false);stopVN();replyTo=null;flt={q:'',star:false};lastSnap=null;unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
+function openChat(c,push=true){if(!c)return;cur=c;flt={q:'',star:false};replyTo=null;lastSnap=null;openUn=(c.unread||{})[me.uid]||0;if(push)history.pushState({chat:c.id},'');
+ view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40)}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header>
+ <div id="sr" class="rpl" hidden><label style="flex:1"><span>Search this chat</span><input id="sq" autocomplete="off"></label><button class="ghost" id="sx">Done</button></div>
+ <div id="ms" class="msgs"></div><div id="rp" class="rpl" hidden></div>
  <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><input id="tx" type="text" autocomplete="off" aria-label="Message" enterkeyhint="send"><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
  const cr=db.collection('chats').doc(c.id);
  $('#bk').onclick=()=>history.back();
@@ -204,18 +240,50 @@ function openChat(c,push=true){if(!c)return;cur=c;if(push)history.pushState({cha
  const send=()=>{const v=$('#tx').value.trim();if(!v)return;$('#tx').value='';post(v,null)};
  $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter')send()};
  $('#tx').oninput=()=>{if(Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
- $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=vnClick;
+ $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=e=>{if(e.target.closest('.pl'))return vnClick(e);const b=e.target.closest('.m');if(b&&b.dataset.id)msgMenu(b.dataset.id)};$('#mo').onclick=chatOptions;$('#sq').oninput=e=>{flt.q=e.target.value;if(lastSnap)paintMsgs(lastSnap)};$('#sx').onclick=()=>{flt.q='';$('#sq').value='';$('#sr').hidden=true;if(lastSnap)paintMsgs(lastSnap)};paintReply();
  $('#fi').onchange=e=>{const f=e.target.files[0];if(f)shrink(f).then(d=>post('',d)).catch(()=>toast('That image could not be read.'))}}
 function shrink(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,800/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.6))};i.onerror=no;i.src=u})}
-function post(text,img,aud){const cr=db.collection('chats').doc(cur.id),b=db.batch();
- b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,at:FV.serverTimestamp(),readBy:[me.uid]});
- const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};cur.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
+function postTo(c,text,img,aud,fwd,rep){const cr=db.collection('chats').doc(c.id),b=db.batch();
+ b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid]});
+ const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
  b.update(cr,up);b.commit().catch(()=>toast('Could not send that message.'))}
-function paintMsgs(s){const el=$('#ms');if(!el)return;const near=el.scrollHeight-el.scrollTop-el.clientHeight<120;
- el.innerHTML=s.docs.map(d=>{const m=d.data(),mine=m.from===me.uid,pend=d.metadata.hasPendingWrites,seen=mine&&cur.members.some(u=>u!==me.uid&&(m.readBy||[]).includes(u));
-  const tk=mine?`<span class="tk ${seen?'rd':''}" title="${pend?'Sending':seen?'Read':'Delivered'}">${ic('check')}${pend?'':ic('check')}</span>`:'';
-  return`<div class="m ${mine?'me':''}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.audio?vn(d.id,m.audio):''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${esc(m.text||'')}<span class="mt">${ftime(m.at)}${tk}</span></div>`}).join('');
+function post(text,img,aud){postTo(cur,text,img,aud,false,replyTo);replyTo=null;paintReply()}
+let MS={},lastSnap=null,flt={q:'',star:false},openUn=0,replyTo=null;
+const dKey=t=>(t&&t.toDate?t.toDate():new Date()).toDateString();
+function dLbl(t){const d=t&&t.toDate?t.toDate():new Date(),n=new Date();return d.toDateString()===n.toDateString()?'Today':d.toDateString()===new Date(n-864e5).toDateString()?'Yesterday':d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})}
+function paintMsgs(s){const el=$('#ms');if(!el)return;lastSnap=s;const near=el.scrollHeight-el.scrollTop-el.clientHeight<120;
+ let docs=s.docs.filter(d=>!(d.data().hiddenFor||[]).includes(me.uid));MS={};docs.forEach(d=>MS[d.id]=d.data());
+ const q=flt.q.trim().toLowerCase();if(q)docs=docs.filter(d=>(d.data().text||'').toLowerCase().includes(q));
+ if(flt.star)docs=docs.filter(d=>(d.data().starredBy||[]).includes(me.uid));
+ let ud=-1;if(openUn&&!q&&!flt.star){let n=0;for(let i=docs.length-1;i>=0;i--)if(docs[i].data().from!==me.uid&&++n===openUn){ud=i;break}}
+ let last='';
+ el.innerHTML=docs.map((d,i)=>{const m=d.data(),mine=m.from===me.uid,pend=d.metadata.hasPendingWrites,seen=mine&&cur.members.some(u=>u!==me.uid&&(m.readBy||[]).includes(u));
+  const k=dKey(m.at),sep=k!==last?`<div class="day">${dLbl(m.at)}</div>`:'';last=k;
+  const tk=mine&&!m.deleted?`<span class="tk ${seen?'rd':''}" title="${pend?'Sending':seen?'Read':'Delivered'}">${ic('check')}${pend?'':ic('check')}</span>`:'';
+  const meta=`<span class="mt">${(m.starredBy||[]).includes(me.uid)?ic('star'):''}${m.edited&&!m.deleted?'edited ':''}${ftime(m.at)}${tk}</span>`,div=i===ud?'<div class="ud">Unread messages</div>':'';
+  if(m.deleted)return sep+div+`<div class="m dl ${mine?'me':''}" data-id="${d.id}">This message was deleted${meta}</div>`;
+  const rx={};Object.values(m.reactions||{}).forEach(e=>rx[e]=(rx[e]||0)+1);
+  return sep+div+`<div class="m ${mine?'me':''}" data-id="${d.id}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.fwd?'<span class="w" style="color:var(--mu)">Forwarded</span>':''}${m.reply?`<div class="q"><b>${esc(m.reply.name)}</b><span>${esc(m.reply.text)}</span></div>`:''}${m.audio?vn(d.id,m.audio):''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${esc(m.text||'')}${Object.keys(rx).length?`<span class="rx">${Object.entries(rx).map(([e,n])=>`<i>${e}${n>1?' '+n:''}</i>`).join('')}</span>`:''}${meta}</div>`}).join('')||'<p class="empty">No messages to show.</p>';
  if(near||s.metadata.fromCache===false&&!el.dataset.k){el.scrollTop=el.scrollHeight;el.dataset.k=1}syncVN()}
+function paintReply(){const el=$('#rp');if(!el)return;el.hidden=!replyTo;if(!replyTo){el.innerHTML='';return}
+ el.innerHTML=`<div class="q"><b>Replying to ${esc(replyTo.name)}</b><span>${esc(replyTo.text)}</span></div><button class="ib" id="rpx" aria-label="Cancel reply">${ic('x')}</button>`;$('#rpx').onclick=()=>{replyTo=null;paintReply()}}
+function setReply(id){const m=MS[id];replyTo={id,name:cur.names[m.from]||'Member',text:m.text||(m.audio?'Voice note':'Photo')};paintReply();$('#tx').focus()}
+function msgMenu(id){const m=MS[id];if(!m)return;const mine=m.from===me.uid,cr=db.collection('chats').doc(cur.id).collection('messages').doc(id),del=!!m.deleted,st=(m.starredBy||[]).includes(me.uid),acts=[];
+ if(!del){acts.push(['Reply',()=>setReply(id)]);
+  if(m.text)acts.push(['Copy text',()=>navigator.clipboard.writeText(m.text).then(()=>toast('Copied'),()=>toast('Could not copy.'))]);
+  acts.push(['Forward',()=>fwdPick(m)]);
+  acts.push([st?'Remove star':'Star message',()=>cr.update({starredBy:st?FV.arrayRemove(me.uid):FV.arrayUnion(me.uid)})]);
+  if(mine&&m.text&&!m.audio&&!m.img)acts.push(['Edit message',()=>editMsg(cr,m)]);
+  if(mine&&cur.isGroup)acts.push(['Who has read this',()=>{const r=cur.members.filter(u=>u!==me.uid&&(m.readBy||[]).includes(u)).map(u=>cur.names[u]||'Member');const x=modal(`<h3>Read by</h3><p>${r.length?esc(r.join(', ')):'Nobody yet.'}</p><div class="acts"><button class="pri" id="rd">Back to chat</button></div>`);$('#rd').onclick=x.close}])}
+ acts.push(['Delete for me',()=>cr.update({hiddenFor:FV.arrayUnion(me.uid)})]);
+ if(mine&&!del)acts.push(['Delete for everyone',()=>confirmD('Delete for everyone?','This removes the message for all members and cannot be undone.','Delete for everyone',()=>cr.update({deleted:true,text:'',img:null,audio:null}))]);
+ const mo=sheet(acts,del?'':'<div class="emo">'+['👍','❤️','😂','😮','😢','🙏'].map(e=>`<button data-e="${e}" aria-label="React ${e}">${e}</button>`).join('')+'</div>');
+ mo.el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const same=(m.reactions||{})[me.uid]===b.dataset.e;cr.update({['reactions.'+me.uid]:same?FV.delete():b.dataset.e});mo.close()})}
+function editMsg(cr,m){const x=modal(`<h3>Edit message</h3><label><span>Message</span><input id="ed"></label><div class="acts"><button class="ghost" id="ec">Keep original</button><button class="pri" id="es">Save change</button></div>`);
+ $('#ed').value=m.text;$('#ec').onclick=x.close;$('#es').onclick=()=>{const v=$('#ed').value.trim();if(!v)return toast('A message cannot be empty.');x.close();if(v!==m.text)cr.update({text:v,edited:true})}}
+function fwdPick(m){const x=modal(`<h3>Forward to</h3><div class="res">${chats.map(c=>`<button class="row" data-id="${c.id}">${av(cname(c))}<span class="mid"><b>${esc(cname(c))}</b></span></button>`).join('')}</div><div class="acts"><button class="ghost" id="fc">Cancel</button></div>`);
+ $('#fc').onclick=x.close;x.el.querySelectorAll('.row').forEach(b=>b.onclick=()=>{const c=chats.find(y=>y.id===b.dataset.id);x.close();postTo(c,m.text||'',m.img||null,m.audio||null,true,null);toast('Forwarded to '+cname(c))})}
+function chatOptions(){sheet([['Search in this chat',()=>{$('#sr').hidden=false;$('#sq').focus()}],[flt.star?'Show all messages':'Show starred messages',()=>{flt.star=!flt.star;if(lastSnap)paintMsgs(lastSnap);toast(flt.star?'Showing starred messages':'Showing all messages')}],...prefActs(cur)])}
 function markRead(s,cr){if(s.metadata.hasPendingWrites)return;const un=s.docs.filter(d=>d.data().from!==me.uid&&!(d.data().readBy||[]).includes(me.uid));
  if(un.length){const b=db.batch();un.forEach(d=>b.update(d.ref,{readBy:FV.arrayUnion(me.uid)}));b.commit().catch(()=>{})}
  if(((cur.unread||{})[me.uid]||0)>0)cr.update({['unread.'+me.uid]:0}).catch(()=>{})}

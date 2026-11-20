@@ -10,3 +10,8 @@ v3: service worker now revalidates own files with the server (cache:no-cache), i
 
 v4: show/hide password eye; pinch-zoom and long-press selection disabled (inputs still selectable); scrollbars hidden; names accept any Unicode (styled text, emoji), search normalised with NFKC, avatar = first grapheme with per-name colour; chat rows show 'You:' prefix and bold unread state.
 Trade-off: zoom disabled hurts low-vision users; message text cannot be copied until a Copy action exists (planned Phase 1 long-press menu).
+
+v5 (Phase 1 + part of Phase 2): tap a message for reply/react/copy/forward/star/edit/delete; quoted replies; reactions; day separators; unread divider; in-chat search and starred filter; chat list chips (All/Unread/Groups/Archived); pin/mute/archive (long-press a chat or use chat options); Saved messages chat; group 'who has read'; wallpaper.
+Republish firestore.rules (changed: members may update readBy/reactions/starredBy/hiddenFor; sender may edit/delete own).
+Residual risk: any member can alter another member's reaction/hide/star entries (rules cannot restrict per-user map keys cheaply).
+NOT built yet: profile photo/about, online/last seen, group admin tools (add/remove/rename, group photo). Nothing runtime-tested.
