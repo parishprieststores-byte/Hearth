@@ -7,3 +7,6 @@ v2: sound ping when a new message arrives (while app is open; Web Audio, mute bu
 Known issues: nothing runtime-tested; real-device checks pending.
 
 v3: service worker now revalidates own files with the server (cache:no-cache), installs with cache:reload, registers with updateViaCache:none, and the page reloads itself once when a new worker takes over. Fixes updates not showing in normal Chrome.
+
+v4: show/hide password eye; pinch-zoom and long-press selection disabled (inputs still selectable); scrollbars hidden; names accept any Unicode (styled text, emoji), search normalised with NFKC, avatar = first grapheme with per-name colour; chat rows show 'You:' prefix and bold unread state.
+Trade-off: zoom disabled hurts low-vision users; message text cannot be copied until a Copy action exists (planned Phase 1 long-press menu).

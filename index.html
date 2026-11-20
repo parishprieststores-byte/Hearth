@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <title>Hearth</title><meta name="theme-color" content="#d9661f">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
 <style>
 :root{--bg:#f6f3ee;--sf:#fff;--tx:#231f1a;--mu:#7a7168;--ac:#d9661f;--on:#fff;--mine:#fbe3cf;--bd:#e7e0d6;--rd:#2f8f6b;--er:#b3261e}
 [data-theme=dark]{--bg:#14171a;--sf:#1d2226;--tx:#ece7e0;--mu:#8d948f;--ac:#f08a4b;--on:#1a1208;--mine:#4a2c17;--bd:#2b3238;--rd:#5fd0a0;--er:#f2b8b5}
 *{box-sizing:border-box;margin:0}html,body{height:100%}
-body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,sans-serif;overscroll-behavior:none}
+body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,"Segoe UI","Noto Sans","Noto Color Emoji","Apple Color Emoji",sans-serif;overscroll-behavior:none}
 button,input{font:inherit;color:inherit}button{background:none;border:0;cursor:pointer;touch-action:manipulation}
 .ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 #app{height:100dvh;display:flex;flex-direction:column;max-width:720px;margin:auto;background:var(--bg);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -50,6 +50,12 @@ label input{height:46px;border-radius:12px;border:1.5px solid var(--bd);backgrou
 .dot{width:12px;height:12px;border-radius:50%;background:var(--er);animation:pl 1s infinite alternate}@keyframes pl{to{opacity:.3}}
 .vn{display:flex;align-items:center;gap:8px;min-width:210px}.vn .pl{width:40px;height:40px;background:var(--ac);color:var(--on)}
 .pb{flex:1;height:4px;border-radius:2px;background:var(--bd);overflow:hidden}.pb i{display:block;height:100%;width:0;background:var(--ac)}
+html,body{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input{-webkit-user-select:text;user-select:text}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+.pw{position:relative}.pw input{width:100%;padding-right:50px}.pw .ib{position:absolute;right:1px;top:1px}
+.av{font-size:1.15rem;line-height:1;color:#fff}
+.mid b{font-size:1.05rem;font-weight:700}.row.un .mid small{color:var(--tx);font-weight:600}.row.un .rt small{color:var(--ac);font-weight:700}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -66,6 +72,8 @@ label input{height:46px;border-radius:12px;border:1.5px solid var(--bd);backgrou
 <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol>
 <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
 <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></symbol>
 </defs></svg>
 <div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -81,6 +89,14 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const view=h=>{$('#app').innerHTML=h};
 const ftime=t=>t&&t.toDate?t.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('o');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('o'),3000)}
+
+/* ---- names: any Unicode (styled text, emoji) ---- */
+const seg=s=>window.Intl&&Intl.Segmenter?[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(String(s))].map(x=>x.segment):Array.from(String(s));
+const clip=(s,n=40)=>seg(s).slice(0,n).join('');
+const av=(n,sz)=>{const g=seg(String(n).trim())[0]||'?',hue=Array.from(String(n)).reduce((a,c)=>(a*31+c.codePointAt(0))|0,7)%360;
+ return`<span class="av" style="background:hsl(${Math.abs(hue)} 50% 40%)${sz?`;width:${sz}px;height:${sz}px`:''}">${esc(g.toUpperCase())}</span>`};
+document.addEventListener('gesturestart',e=>e.preventDefault());
+addEventListener('contextmenu',e=>{if(!e.target.closest('input'))e.preventDefault()});
 
 /* ---- theme ---- */
 const mq=matchMedia('(prefers-color-scheme:dark)');
@@ -115,15 +131,16 @@ function authView(mode='in',err=''){const up=mode==='up';
  view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Hearth</h1>
  <div class="seg"><button data-m="in" class="${up?'':'on'}">Sign in</button><button data-m="up" class="${up?'on':''}">Create account</button></div>
  <form id="af" style="display:flex;flex-direction:column;gap:14px">
- ${up?'<label><span>Name</span><input id="nm" autocomplete="name" required maxlength="30"></label>':''}
+ ${up?'<label><span>Name</span><input id="nm" autocomplete="name" required maxlength="120"></label>':''}
  <label><span>Email</span><input id="em" type="email" autocomplete="email" required></label>
- <label><span>Password</span><input id="pw" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="6" required></label>
+ <label><span>Password</span><div class="pw"><input id="pw" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="6" required><button type="button" id="eye" class="ib" aria-label="Show password" aria-pressed="false">${ic('eye')}</button></div></label>
  <p class="err" role="alert">${esc(err)}</p><button class="pri" type="submit">${up?'Create account':'Sign in'}</button></form></main>`);
  document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>authView(b.dataset.m));
+ $('#eye').onclick=()=>{const p=$('#pw'),s=p.type==='password',b=$('#eye');p.type=s?'text':'password';b.innerHTML=ic(s?'eyeoff':'eye');b.setAttribute('aria-label',s?'Hide password':'Show password');b.setAttribute('aria-pressed',String(s))};
  $('#af').onsubmit=async e=>{e.preventDefault();const em=$('#em').value.trim(),pw=$('#pw').value;
-  try{if(up){const n=$('#nm').value.trim(),c=await auth.createUserWithEmailAndPassword(em,pw);
+  try{if(up){const n=clip($('#nm').value.trim()),c=await auth.createUserWithEmailAndPassword(em,pw);
     await c.user.updateProfile({displayName:n});
-    await db.collection('users').doc(c.user.uid).set({name:n,nameLower:n.toLowerCase(),email:em});
+    await db.collection('users').doc(c.user.uid).set({name:n,nameLower:n.normalize('NFKC').toLowerCase(),email:em});
     listenChats();listView()}
    else await auth.signInWithEmailAndPassword(em,pw)}
   catch(x){authView(mode,x.code==='auth/invalid-credential'?'Wrong email or password.':x.code==='auth/email-already-in-use'?'That email already has an account.':x.message)}}}
@@ -146,7 +163,7 @@ function listView(){leaveChat();
 function paintList(){const el=$('#cl');if(!el)return;
  if(!chats.length){el.innerHTML='<p class="empty">No chats yet. Tap the + button to start one.</p>';return}
  el.innerHTML=chats.map(c=>{const n=cname(c),u=(c.unread||{})[me.uid]||0;
-  return`<button class="row" data-id="${c.id}"><span class="av">${esc(n[0]||'?').toUpperCase()}</span><span class="mid"><b>${esc(n)}</b><small>${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small>${u?`<i class="bd">${u}</i>`:''}</span></button>`}).join('');
+  return`<button class="row${u?' un':''}" data-id="${c.id}">${av(n)}<span class="mid"><b>${esc(n)}</b><small>${c.lastFrom===me.uid&&c.lastText?'You: ':''}${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small>${u?`<i class="bd">${u}</i>`:''}</span></button>`}).join('');
  el.querySelectorAll('.row').forEach(b=>b.onclick=()=>openChat(chats.find(c=>c.id===b.dataset.id)))}
 
 /* ---- new chat / group ---- */
@@ -154,11 +171,11 @@ function newChat(){const sel=new Map();let found=[],dt;
  const m=modal(`<h3>New chat</h3><label><span>Find people by name</span><input id="q" autocomplete="off"></label><div id="res" class="res"></div>
  <label id="gt" hidden><span>Group name</span><input id="gn" maxlength="40"></label>
  <div class="acts"><button class="ghost" id="cx">Close</button><button class="pri" id="go" disabled>Start chat</button></div>`);
- const paint=()=>{$('#res').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}"><span class="av">${esc(u.name[0]||'?').toUpperCase()}</span><span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
+ const paint=()=>{$('#res').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}">${av(u.name)}<span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
   $('#res').querySelectorAll('.row').forEach(b=>b.onclick=()=>{const u=found.find(x=>x.id===b.dataset.id);sel.has(u.id)?sel.delete(u.id):sel.set(u.id,u);paint()});
   const g=sel.size>1;$('#gt').hidden=!g;$('#go').disabled=!sel.size;$('#go').textContent=g?'Create group':'Start chat'};
  paint();$('#cx').onclick=m.close;
- $('#q').oninput=e=>{clearTimeout(dt);const q=e.target.value.trim().toLowerCase();
+ $('#q').oninput=e=>{clearTimeout(dt);const q=e.target.value.trim().normalize('NFKC').toLowerCase();
   dt=setTimeout(async()=>{if(!q){found=[...sel.values()];return paint()}
    try{const s=await db.collection('users').where('nameLower','>=',q).where('nameLower','<=',q+'\uf8ff').limit(15).get();
     found=s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}));sel.forEach(u=>{if(!found.some(f=>f.id===u.id))found.push(u)});paint()}
@@ -174,7 +191,7 @@ function newChat(){const sel=new Map();let found=[],dt;
 /* ---- chat screen ---- */
 function leaveChat(){stopRec(false);stopVN();unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
 function openChat(c,push=true){if(!c)return;cur=c;if(push)history.pushState({chat:c.id},'');
- view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button><span class="av" style="width:40px;height:40px">${esc(cname(c)[0]||'?').toUpperCase()}</span><div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div></header>
+ view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40)}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div></header>
  <div id="ms" class="msgs"></div>
  <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><input id="tx" type="text" autocomplete="off" aria-label="Message" enterkeyhint="send"><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
  const cr=db.collection('chats').doc(c.id);
@@ -192,7 +209,7 @@ function openChat(c,push=true){if(!c)return;cur=c;if(push)history.pushState({cha
 function shrink(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,800/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.6))};i.onerror=no;i.src=u})}
 function post(text,img,aud){const cr=db.collection('chats').doc(cur.id),b=db.batch();
  b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,at:FV.serverTimestamp(),readBy:[me.uid]});
- const up={lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};cur.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
+ const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};cur.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
  b.update(cr,up);b.commit().catch(()=>toast('Could not send that message.'))}
 function paintMsgs(s){const el=$('#ms');if(!el)return;const near=el.scrollHeight-el.scrollTop-el.clientHeight<120;
  el.innerHTML=s.docs.map(d=>{const m=d.data(),mine=m.from===me.uid,pend=d.metadata.hasPendingWrites,seen=mine&&cur.members.some(u=>u!==me.uid&&(m.readBy||[]).includes(u));
