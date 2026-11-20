@@ -19,3 +19,5 @@ NOT built yet: profile photo/about, online/last seen, group admin tools (add/rem
 v6: bottom tabs (Chats/Updates/Birthdays/Profile); profile (photo, about, birthday + sharing switch); Birthdays tab (today/7/30 days, send greeting, once-a-day toast); Updates tab (24h text/photo updates stored on the poster's users doc, max 6, reply via chat). firestore.rules UNCHANGED from v5 (keep v5 rules).
 Privacy: everything in users docs (name, email, about, photo, birthday if shared, updates) is readable by every signed-in user. Birthday sharing off = nothing stored, so the month/day are not remembered.
 Not built: channels, view counts, reactions on updates (need rules), Telegram-style shell, online/last seen, group admin. Nothing runtime-tested.
+
+v7: message actions (react, star, edit, delete, hide) now show a clear message when the database refuses the change (usually firestore.rules not republished) instead of failing silently. Reported symptom: reactions vanish right after tapping (cause not confirmed; most likely v5 rules not published, because the app shows the write locally and the server then rejects it).

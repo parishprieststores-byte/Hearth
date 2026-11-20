@@ -357,19 +357,20 @@ function paintMsgs(s){const el=$('#ms');if(!el)return;lastSnap=s;const near=el.s
 function paintReply(){const el=$('#rp');if(!el)return;el.hidden=!replyTo;if(!replyTo){el.innerHTML='';return}
  el.innerHTML=`<div class="q"><b>Replying to ${esc(replyTo.name)}</b><span>${esc(replyTo.text)}</span></div><button class="ib" id="rpx" aria-label="Cancel reply">${ic('x')}</button>`;$('#rpx').onclick=()=>{replyTo=null;paintReply()}}
 function setReply(id){const m=MS[id];replyTo={id,name:cur.names[m.from]||'Member',text:m.text||(m.audio?'Voice note':'Photo')};paintReply();$('#tx').focus()}
+const upd=(ref,data)=>ref.update(data).catch(e=>toast(e&&e.code==='permission-denied'?'The database refused this change. Publish the latest firestore.rules in Firebase.':'Could not save that change.'));
 function msgMenu(id){const m=MS[id];if(!m)return;const mine=m.from===me.uid,cr=db.collection('chats').doc(cur.id).collection('messages').doc(id),del=!!m.deleted,st=(m.starredBy||[]).includes(me.uid),acts=[];
  if(!del){acts.push(['Reply',()=>setReply(id)]);
   if(m.text)acts.push(['Copy text',()=>navigator.clipboard.writeText(m.text).then(()=>toast('Copied'),()=>toast('Could not copy.'))]);
   acts.push(['Forward',()=>fwdPick(m)]);
-  acts.push([st?'Remove star':'Star message',()=>cr.update({starredBy:st?FV.arrayRemove(me.uid):FV.arrayUnion(me.uid)})]);
+  acts.push([st?'Remove star':'Star message',()=>upd(cr,{starredBy:st?FV.arrayRemove(me.uid):FV.arrayUnion(me.uid)})]);
   if(mine&&m.text&&!m.audio&&!m.img)acts.push(['Edit message',()=>editMsg(cr,m)]);
   if(mine&&cur.isGroup)acts.push(['Who has read this',()=>{const r=cur.members.filter(u=>u!==me.uid&&(m.readBy||[]).includes(u)).map(u=>cur.names[u]||'Member');const x=modal(`<h3>Read by</h3><p>${r.length?esc(r.join(', ')):'Nobody yet.'}</p><div class="acts"><button class="pri" id="rd">Back to chat</button></div>`);$('#rd').onclick=x.close}])}
- acts.push(['Delete for me',()=>cr.update({hiddenFor:FV.arrayUnion(me.uid)})]);
- if(mine&&!del)acts.push(['Delete for everyone',()=>confirmD('Delete for everyone?','This removes the message for all members and cannot be undone.','Delete for everyone',()=>cr.update({deleted:true,text:'',img:null,audio:null}))]);
+ acts.push(['Delete for me',()=>upd(cr,{hiddenFor:FV.arrayUnion(me.uid)})]);
+ if(mine&&!del)acts.push(['Delete for everyone',()=>confirmD('Delete for everyone?','This removes the message for all members and cannot be undone.','Delete for everyone',()=>upd(cr,{deleted:true,text:'',img:null,audio:null}))]);
  const mo=sheet(acts,del?'':'<div class="emo">'+['👍','❤️','😂','😮','😢','🙏'].map(e=>`<button data-e="${e}" aria-label="React ${e}">${e}</button>`).join('')+'</div>');
- mo.el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const same=(m.reactions||{})[me.uid]===b.dataset.e;cr.update({['reactions.'+me.uid]:same?FV.delete():b.dataset.e});mo.close()})}
+ mo.el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const same=(m.reactions||{})[me.uid]===b.dataset.e;upd(cr,{['reactions.'+me.uid]:same?FV.delete():b.dataset.e});mo.close()})}
 function editMsg(cr,m){const x=modal(`<h3>Edit message</h3><label><span>Message</span><input id="ed"></label><div class="acts"><button class="ghost" id="ec">Keep original</button><button class="pri" id="es">Save change</button></div>`);
- $('#ed').value=m.text;$('#ec').onclick=x.close;$('#es').onclick=()=>{const v=$('#ed').value.trim();if(!v)return toast('A message cannot be empty.');x.close();if(v!==m.text)cr.update({text:v,edited:true})}}
+ $('#ed').value=m.text;$('#ec').onclick=x.close;$('#es').onclick=()=>{const v=$('#ed').value.trim();if(!v)return toast('A message cannot be empty.');x.close();if(v!==m.text)upd(cr,{text:v,edited:true})}}
 function fwdPick(m){const x=modal(`<h3>Forward to</h3><div class="res">${chats.map(c=>`<button class="row" data-id="${c.id}">${av(cname(c))}<span class="mid"><b>${esc(cname(c))}</b></span></button>`).join('')}</div><div class="acts"><button class="ghost" id="fc">Cancel</button></div>`);
  $('#fc').onclick=x.close;x.el.querySelectorAll('.row').forEach(b=>b.onclick=()=>{const c=chats.find(y=>y.id===b.dataset.id);x.close();postTo(c,m.text||'',m.img||null,m.audio||null,true,null);toast('Forwarded to '+cname(c))})}
 function chatOptions(){sheet([['Search in this chat',()=>{$('#sr').hidden=false;$('#sq').focus()}],[flt.star?'Show all messages':'Show starred messages',()=>{flt.star=!flt.star;if(lastSnap)paintMsgs(lastSnap);toast(flt.star?'Showing starred messages':'Showing all messages')}],...prefActs(cur)])}
