@@ -236,5 +236,7 @@ function syncVN(){document.querySelectorAll('.pl').forEach(b=>{const id=b.datase
 history.replaceState({},'');
 addEventListener('popstate',e=>{if(me&&!(e.state&&e.state.chat))listView()});
 }
-if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
+ let had=!!navigator.serviceWorker.controller,rl=false;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!document.querySelector('.comp.rec')){rl=true;location.reload()}had=true})}
 </script></body></html>
