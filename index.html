@@ -85,6 +85,7 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 .m.rdy::before{background-color:var(--mine)}
 .comp textarea{flex:1;min-width:0;min-height:44px;max-height:120px;border-radius:22px;border:1.5px solid var(--bd);background:var(--bg);padding:9px 16px;resize:none;font:inherit;line-height:1.35;color:inherit}
 .comp textarea:focus{outline:2px solid var(--ac);outline-offset:1px}
+.updbar{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top));z-index:9;background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:8px 8px 8px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 16px #0003}.updbar span{flex:1;font-weight:700}.updbar button{min-height:40px;padding:0 14px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -120,6 +121,7 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
 const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
 
+const APP_VER='10';
 const $=(s,e=document)=>e.querySelector(s);
 const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -255,11 +257,12 @@ async function renderProfile(){const el=$('#cl');el.innerHTML='<p class="empty">
  <label><span>Birthday month</span><select id="bm"><option value="0">Not set</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select></label>
  <label><span>Birthday day</span><select id="bdy">${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}</select></label>
  <div class="swr"><span>Share my birthday with other Hearth users</span><button type="button" class="sw" id="bs" role="switch" aria-checked="${share}" aria-label="Share my birthday"></button></div>
- <button class="pri" id="sp">Save profile</button></div>`;
+ <button class="pri" id="sp">Save profile</button><button class="ghost" id="ua">Update app</button><p style="text-align:center;color:var(--mu);font-size:.85rem">Version ${APP_VER}</p></div>`;
  $('#ab').value=d.about||'';$('#bm').value=String(d.bmd?Math.floor(d.bmd/100):0);$('#bdy').value=String(d.bmd?d.bmd%100:1);
  $('#pp').onclick=()=>$('#pf').click();
  $('#pf').onchange=e=>{const f=e.target.files[0];if(f)thumb(f).then(u=>{ph=u;UP[me.uid]={photo:u};$('#pa').innerHTML=av(myName(),88,me.uid)}).catch(()=>toast('That image could not be read.'))};
  $('#bs').onclick=()=>{share=!share;$('#bs').setAttribute('aria-checked',String(share))};
+ $('#ua').onclick=async()=>{toast('Updating…');try{const r=await navigator.serviceWorker.getRegistration();if(r)await r.unregister();const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('hearth-')).map(k=>caches.delete(k)))}catch(e){}location.reload()};
  $('#sp').onclick=async()=>{const m=+$('#bm').value,dd=+$('#bdy').value,up={about:$('#ab').value.trim(),photo:ph};
   if(share&&!m)return toast('Choose your birthday month first, or switch sharing off.');
   if(m&&dd>new Date(2024,m,0).getDate())return toast('That day does not exist in that month.');
@@ -436,7 +439,10 @@ function syncVN(){document.querySelectorAll('.pl').forEach(b=>{const id=b.datase
 history.replaceState({},'');
 addEventListener('popstate',e=>{if(ignorePop){ignorePop--;return}if(mClose){mClose(true);return}if(me&&!(e.state&&e.state.chat))listView()});
 }
+function showUpdate(){if($('#upd'))return;const b=document.createElement('div');b.id='upd';b.className='updbar';b.setAttribute('role','status');
+ b.innerHTML='<span>A new version of Hearth is ready.</span><button class="pri" id="ur">Reload now</button>';document.body.appendChild(b);$('#ur').onclick=()=>location.reload()}
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
  let had=!!navigator.serviceWorker.controller,rl=false;
- navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl&&!document.querySelector('.comp.rec')){rl=true;location.reload()}had=true})}
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){const tx=document.getElementById('tx');if(document.querySelector('.comp.rec')||(tx&&tx.value.trim()))showUpdate();else{rl=true;location.reload()}}had=true});
+ navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='hearth-update-ready')showUpdate()})}
 </script></body></html>
