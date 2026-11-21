@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no,interactive-widget=resizes-content">
+<title>Hearth</title><meta name="theme-color" content="#d9661f">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#f6f3ee;--sf:#fff;--tx:#231f1a;--mu:#7a7168;--ac:#d9661f;--on:#fff;--mine:#fbe3cf;--bd:#e7e0d6;--rd:#2f8f6b;--er:#b3261e}
+[data-theme=dark]{--bg:#14171a;--sf:#1d2226;--tx:#ece7e0;--mu:#8d948f;--ac:#f08a4b;--on:#1a1208;--mine:#4a2c17;--bd:#2b3238;--rd:#5fd0a0;--er:#f2b8b5}
+*{box-sizing:border-box;margin:0}html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,"Segoe UI","Noto Sans","Noto Color Emoji","Apple Color Emoji",sans-serif;overscroll-behavior:none}
+button,input{font:inherit;color:inherit}button{background:none;border:0;cursor:pointer;touch-action:manipulation}
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#app{height:100dvh;display:flex;flex-direction:column;max-width:720px;margin:auto;background:var(--bg);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:60px;background:var(--sf);border-bottom:1px solid var(--bd)}
+.bar h2{flex:1;font-size:1.25rem}.bar small{display:block;color:var(--mu);font-size:.8rem}.bar .t{flex:1;min-width:0}.bar .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar button,.ib{width:44px;height:44px;border-radius:50%;display:grid;place-items:center}.bar button:active,.ib:active{background:var(--bd)}
+.list,.msgs{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+.row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;text-align:left;border-bottom:1px solid var(--bd);min-height:68px}
+.row:active{background:var(--bd)}.av{width:46px;height:46px;border-radius:16px;background:var(--ac);color:var(--on);display:grid;place-items:center;font-weight:700;flex:none}
+.mid{flex:1;min-width:0}.mid b,.mid small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mid small,.rt small{color:var(--mu)}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}.bd{font-style:normal;background:var(--ac);color:var(--on);border-radius:99px;min-width:22px;padding:0 7px;text-align:center;font-size:.8rem;font-weight:700}
+.empty{padding:40px 24px;text-align:center;color:var(--mu)}
+.fab{position:fixed;right:max(20px,calc(50% - 340px));bottom:calc(78px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:20px;background:var(--ac);color:var(--on);display:grid;place-items:center;box-shadow:0 6px 16px #0003}
+.fab:active{transform:scale(.94)}
+.msgs{padding:12px;display:flex;flex-direction:column;gap:6px}
+.m{max-width:80%;padding:8px 12px;border-radius:16px 16px 16px 4px;background:var(--sf);border:1px solid var(--bd);align-self:flex-start;word-break:break-word;white-space:pre-wrap}
+.m.me{align-self:flex-end;background:var(--mine);border-radius:16px 16px 4px 16px}
+.m img{max-width:100%;border-radius:10px;display:block;margin-bottom:4px}
+.m .w{display:block;font-size:.72rem;color:var(--ac);font-weight:700}
+.m .mt{display:flex;justify-content:flex-end;align-items:center;gap:4px;font-size:.7rem;color:var(--mu);margin-top:2px}
+.tk{display:inline-flex}.tk .ic{width:14px;height:14px}.tk .ic+.ic{margin-left:-9px}.tk.rd{color:var(--rd)}
+.comp{display:flex;align-items:flex-end;gap:6px;padding:8px;background:var(--sf);border-top:1px solid var(--bd)}
+.comp input[type=text]{flex:1;min-width:0;height:44px;border-radius:22px;border:1.5px solid var(--bd);background:var(--bg);padding:0 16px}
+.comp input:focus,label input:focus{outline:2px solid var(--ac);outline-offset:1px}
+.send{background:var(--ac);color:var(--on)}
+.auth{margin:auto;width:100%;max-width:380px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.logo{width:64px;height:64px;border-radius:22px;background:var(--ac);color:var(--on);display:grid;place-items:center}.logo .ic{width:34px;height:34px}
+h1{font-size:2rem}.seg{display:flex;background:var(--bd);border-radius:12px;padding:3px}.seg button{flex:1;min-height:42px;border-radius:10px}.seg .on{background:var(--sf);font-weight:700}
+label{display:flex;flex-direction:column;gap:4px}label span{font-size:.85rem;font-weight:600;color:var(--mu)}
+label input{height:46px;border-radius:12px;border:1.5px solid var(--bd);background:var(--sf);padding:0 12px}
+.pri,.ghost{min-height:46px;border-radius:12px;padding:0 18px;font-weight:700}.pri{background:var(--ac);color:var(--on)}.pri:disabled{opacity:.45}.ghost{color:var(--ac)}
+.err{color:var(--er);font-size:.9rem}
+#dlg{position:fixed;inset:0;display:none;background:#0007;align-items:flex-end;justify-content:center;z-index:5}#dlg.o{display:flex}
+.card{background:var(--sf);width:100%;max-width:520px;border-radius:24px 24px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;max-height:85dvh}
+.res{overflow-y:auto;min-height:60px}.res .row{padding:8px 4px;min-height:56px}.res .row.s{background:var(--mine)}
+.acts{display:flex;justify-content:flex-end;gap:8px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:90%}#toast.o{opacity:1}
+.rb{display:flex;align-items:center;gap:10px;flex:1;min-height:44px;padding-left:8px}.rb[hidden]{display:none}
+.comp.rec>:not(.rb){display:none}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--er);animation:pl 1s infinite alternate}@keyframes pl{to{opacity:.3}}
+.vn{display:flex;align-items:center;gap:8px;min-width:210px}.vn .pl{width:40px;height:40px;background:var(--ac);color:var(--on)}
+.pb{flex:1;height:4px;border-radius:2px;background:var(--bd);overflow:hidden}.pb i{display:block;height:100%;width:0;background:var(--ac)}
+html,body{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-user-select:text;user-select:text}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+.pw{position:relative}.pw input{width:100%;padding-right:50px}.pw .ib{position:absolute;right:1px;top:1px}
+.av{font-size:1.15rem;line-height:1;color:#fff}
+.mid b{font-size:1.05rem;font-weight:700}.row.un .mid small{color:var(--tx);font-weight:600}.row.un .rt small{color:var(--ac);font-weight:700}
+.msgs{background-image:radial-gradient(var(--bd) 1px,transparent 1px);background-size:22px 22px}
+.chips{display:flex;gap:8px;padding:8px 12px;overflow-x:auto;background:var(--sf);border-bottom:1px solid var(--bd)}
+.chip{min-height:36px;padding:0 14px;border-radius:18px;border:1.5px solid var(--bd);font-weight:600;white-space:nowrap}.chip.on{background:var(--mine);border-color:var(--ac)}
+.day,.ud{align-self:center;font-size:.75rem;color:var(--mu);background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:2px 10px;margin:6px 0}.ud{color:var(--ac);font-weight:700}
+.q{border-left:3px solid var(--ac);background:#0001;border-radius:6px;padding:4px 8px;margin-bottom:4px;font-size:.85rem}.q b{display:block;color:var(--ac)}.q span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rx{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.rx i{font-style:normal;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:0 6px;font-size:.85rem}
+.rpl{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--sf);border-top:1px solid var(--bd)}.rpl[hidden]{display:none}.rpl .q{flex:1;margin:0;min-width:0}
+.sheet button{display:flex;align-items:center;min-height:48px;width:100%;text-align:left;padding:0 8px;font-weight:600}.sheet button:active{background:var(--bd)}
+.emo{display:flex;justify-content:space-around}.emo button{width:48px;height:48px;font-size:1.6rem}
+.m.dl{font-style:italic;color:var(--mu)}.mt .ic{width:12px;height:12px}.rt .ic{width:16px;height:16px;color:var(--mu)}
+.tabs{display:flex;background:var(--sf);border-top:1px solid var(--bd)}
+.tabs button{flex:1;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.72rem;color:var(--mu)}.tabs button.on{color:var(--ac);font-weight:700}
+.chips[hidden],.fab[hidden]{display:none}
+.sh{padding:12px 16px 4px;font-size:.75rem;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+.prof{padding:20px;display:flex;flex-direction:column;gap:14px}.prof .av{width:88px;height:88px;border-radius:28px;font-size:2rem}#pa,#pp{align-self:center}
+select{font:inherit;color:inherit}label select{height:46px;border-radius:12px;border:1.5px solid var(--bd);background:var(--sf);padding:0 12px}
+.swr{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sw{width:52px;height:30px;border-radius:15px;background:var(--bd);position:relative;flex:none}.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--sf);box-shadow:0 1px 3px #0004;transition:transform .15s}.sw[aria-checked=true]{background:var(--ac)}.sw[aria-checked=true]::after{transform:translateX(22px)}
+.ring{display:inline-flex;border-radius:18px;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ac)}
+#app{overflow-y:auto}
+body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","Apple Color Emoji",sans-serif;line-height:1.45}
+.bar h2{font-weight:800;letter-spacing:.2px}.mid b{font-size:1.08rem;font-weight:800;letter-spacing:.1px}.mid small{font-size:.92rem}
+.m{font-size:1.03rem;line-height:1.45;position:relative}.msgs{touch-action:pan-y}
+.m code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:#0002;border-radius:4px;padding:0 4px}
+.m.swp::before{content:"";position:absolute;left:-46px;top:50%;width:32px;height:32px;margin-top:-16px;border-radius:50%;background:var(--bd) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5M4 9h10a6 6 0 0 1 6 6v3'/%3E%3C/svg%3E") center/18px no-repeat}
+.m.rdy::before{background-color:var(--mine)}
+.comp textarea{flex:1;min-width:0;min-height:44px;max-height:120px;border-radius:22px;border:1.5px solid var(--bd);background:var(--bg);padding:9px 16px;resize:none;font:inherit;line-height:1.35;color:inherit}
+.comp textarea:focus{outline:2px solid var(--ac);outline-offset:1px}
+.updbar{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top));z-index:9;background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:8px 8px 8px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 16px #0003}.updbar span{flex:1;font-weight:700}.updbar button{min-height:40px;padding:0 14px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+<symbol id="i-theme" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="i-belloff" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0M2 2l20 20"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3 6.9 7.5.6-5.7 4.9 1.8 7.3L12 17.8 5.4 21.7l1.8-7.3L1.5 9.5 9 8.9z"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 3h6l-1 7 3 3H7l3-3z"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-updates" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+</defs></svg>
+<div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
+const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
+
+const APP_VER='10';
+const $=(s,e=document)=>e.querySelector(s);
+const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const view=h=>{$('#app').innerHTML=h};
+const ftime=t=>t&&t.toDate?t.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('o');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('o'),3000)}
+
+/* ---- names: any Unicode (styled text, emoji) ---- */
+const seg=s=>window.Intl&&Intl.Segmenter?[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(String(s))].map(x=>x.segment):Array.from(String(s));
+const clip=(s,n=40)=>seg(s).slice(0,n).join('');
+const UP={};
+const av=(n,sz,uid)=>{const ph=uid&&UP[uid]&&UP[uid].photo,g=seg(String(n).trim())[0]||'?',hue=Array.from(String(n)).reduce((a,c)=>(a*31+c.codePointAt(0))|0,7)%360;
+ return`<span class="av" style="background:${ph?`url('${ph}') center/cover`:`hsl(${Math.abs(hue)} 50% 40%)`}${sz?`;width:${sz}px;height:${sz}px`:''}">${ph?'':esc(g.toUpperCase())}</span>`};
+const fmt=s=>esc(s).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s).,!?:;])/g,'$1<b>$2</b>').replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;])/g,'$1<i>$2</i>').replace(/(^|[\s(])~([^~\n]+)~(?=$|[\s).,!?:;])/g,'$1<s>$2</s>');
+const grow=()=>{const t=$('#tx');if(t){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}};
+document.addEventListener('gesturestart',e=>e.preventDefault());
+addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
+
+/* ---- theme ---- */
+const mq=matchMedia('(prefers-color-scheme:dark)');
+function applyTheme(){let t=null;try{t=localStorage.getItem('hearth-theme')}catch(e){}document.documentElement.dataset.theme=t||(mq.matches?'dark':'light')}
+function flipTheme(){const n=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('hearth-theme',n)}catch(e){}applyTheme()}
+mq.addEventListener('change',applyTheme);applyTheme();
+
+/* ---- sound ---- */
+let ac=null,muted=false;try{muted=localStorage.getItem('hearth-mute')==='1'}catch(e){}
+function unlock(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
+['touchstart','click','keydown'].forEach(t=>addEventListener(t,unlock,{passive:true}));
+function ping(){if(muted||!ac)return;try{const t=ac.currentTime;[880,1175].forEach((f,i)=>{const s=t+i*.12,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.25,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+.35)})}catch(e){}}
+function toggleMute(){muted=!muted;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}const b=$('#mu');if(b){b.innerHTML=ic(muted?'belloff':'bell');b.setAttribute('aria-label',muted?'Unmute sounds':'Mute sounds')}toast(muted?'Sounds muted':'Sounds on');if(!muted)ping()}
+
+/* ---- modal ---- */
+let mClose=null,ignorePop=0;
+function modal(html){const d=$('#dlg'),prev=document.activeElement;if(mClose)mClose(true);
+ d.innerHTML=`<div class="card" role="dialog" aria-modal="true">${html}</div>`;d.classList.add('o');history.pushState({modal:1},'');
+ let done=false;
+ const close=fromPop=>{if(done)return;done=true;mClose=null;d.classList.remove('o');d.innerHTML='';document.removeEventListener('keydown',k);if(prev&&prev.focus)prev.focus();if(!fromPop){ignorePop++;history.back()}};
+ const k=e=>{if(e.key==='Escape')close(false)};document.addEventListener('keydown',k);
+ d.onclick=e=>{if(e.target===d)close(false)};mClose=close;const f=$('input',d);if(f)f.focus();return{el:d,close:()=>close(false)}}
+
+if(typeof firebase==='undefined'){view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Can't load</h1><p>The Firebase scripts did not load. Open the published site in a normal browser with an internet connection, not a file preview.</p></main>`)}
+else if(CFG.apiKey.startsWith('YOUR')){view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Setup needed</h1><p>Hearth needs your Firebase project. Open index.html, paste your web app config into <b>CFG</b>, publish firestore.rules, and enable Email/Password sign-in. Steps are in NOTES.md.</p></main>`)}
+else{
+firebase.initializeApp(CFG);
+const auth=firebase.auth(),db=firebase.firestore(),FV=firebase.firestore.FieldValue;
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+let me=null,chats=[],cur=null,unList=null,unMsg=null,unChat=null,typeT=0,typeTimer=0;
+const myName=()=>auth.currentUser.displayName||auth.currentUser.email;
+
+/* ---- auth ---- */
+function authView(mode='in',err=''){const up=mode==='up';
+ view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Hearth</h1>
+ <div class="seg"><button data-m="in" class="${up?'':'on'}">Sign in</button><button data-m="up" class="${up?'on':''}">Create account</button></div>
+ <form id="af" style="display:flex;flex-direction:column;gap:14px">
+ ${up?'<label><span>Name</span><input id="nm" autocomplete="name" required maxlength="120"></label>':''}
+ <label><span>Email</span><input id="em" type="email" autocomplete="email" required></label>
+ <label><span>Password</span><div class="pw"><input id="pw" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="6" required><button type="button" id="eye" class="ib" aria-label="Show password" aria-pressed="false">${ic('eye')}</button></div></label>
+ <p class="err" role="alert">${esc(err)}</p><button class="pri" type="submit">${up?'Create account':'Sign in'}</button></form></main>`);
+ document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>authView(b.dataset.m));
+ $('#eye').onclick=()=>{const p=$('#pw'),s=p.type==='password',b=$('#eye');p.type=s?'text':'password';b.innerHTML=ic(s?'eyeoff':'eye');b.setAttribute('aria-label',s?'Hide password':'Show password');b.setAttribute('aria-pressed',String(s))};
+ $('#af').onsubmit=async e=>{e.preventDefault();const em=$('#em').value.trim(),pw=$('#pw').value;
+  try{if(up){const n=clip($('#nm').value.trim()),c=await auth.createUserWithEmailAndPassword(em,pw);
+    await c.user.updateProfile({displayName:n});
+    await db.collection('users').doc(c.user.uid).set({name:n,nameLower:n.normalize('NFKC').toLowerCase(),email:em});
+    listenChats();listView()}
+   else await auth.signInWithEmailAndPassword(em,pw)}
+  catch(x){authView(mode,x.code==='auth/invalid-credential'?'Wrong email or password.':x.code==='auth/email-already-in-use'?'That email already has an account.':x.message)}}}
+
+auth.onAuthStateChanged(u=>{me=u;unList&&unList();unList=null;
+ if(u){listenChats();listView()}else{chats=[];cur=null;authView()}});
+
+/* ---- chat list ---- */
+const cname=c=>c.isGroup?c.title:c.members.length===1?'Saved messages':(c.names[c.members.find(x=>x!==me.uid)]||'Chat');
+let prevUn={},primed=false;
+function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0)&&!pf(c,'mute')&&!pf(c,'arch'))hit=c;prevUn[c.id]=u});
+ if(hit){ping();if(!cur||cur.id!==hit.id)toast('New message from '+cname(hit))}if(!fromCache)primed=true}
+function listenChats(){unList&&unList();prevUn={};primed=false;birthdayToday();
+ unList=db.collection('chats').where('members','array-contains',me.uid).onSnapshot(s=>{
+  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);loadPhotos();paintList()},
+  ()=>toast('Could not load chats. Check rules and connection.'))}
+function listView(){leaveChat();
+ view(`<header class="bar"><h2 id="ttl">Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><nav class="tabs" aria-label="Sections">${[['chats','chat','Chats'],['updates','updates','Updates'],['bdays','gift','Birthdays'],['profile','user','Profile']].map(([k,i,t])=>`<button data-t="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</nav><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));showTab(tab)}
+let lf='all';
+const pf=(c,k)=>(c[k]||{})[me.uid];
+const vis=c=>{const u=(c.unread||{})[me.uid]||0;if(lf==='arch')return pf(c,'arch');if(pf(c,'arch'))return false;return lf==='unread'?u>0:lf==='groups'?c.isGroup:true};
+const setP=(c,k,v)=>db.collection('chats').doc(c.id).update({[k+'.'+me.uid]:v}).catch(()=>toast('Could not update that chat.'));
+const prefActs=c=>[[pf(c,'pin')?'Unpin chat':'Pin chat',()=>setP(c,'pin',!pf(c,'pin'))],[pf(c,'mute')?'Unmute chat':'Mute chat',()=>setP(c,'mute',!pf(c,'mute'))],[pf(c,'arch')?'Move out of archive':'Archive chat',()=>setP(c,'arch',!pf(c,'arch'))]];
+function sheet(acts,pre=''){const mo=modal(pre+'<div class="sheet">'+acts.map((a,i)=>`<button data-i="${i}">${esc(a[0])}</button>`).join('')+'</div>');
+ mo.el.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{mo.close();acts[b.dataset.i][1]()});return mo}
+function confirmD(t,body,label,fn){const m=modal(`<h3>${esc(t)}</h3><p>${esc(body)}</p><div class="acts"><button class="ghost" id="cn">Keep it</button><button class="pri" id="cy">${esc(label)}</button></div>`);$('#cn').onclick=m.close;$('#cy').onclick=()=>{m.close();fn()}}
+const chatMenu=id=>{const c=chats.find(x=>x.id===id);if(c)sheet(prefActs(c))};
+function holdBind(el){let t,fired=false,x0=0,y0=0;
+ el.addEventListener('pointerdown',e=>{const r=e.target.closest('.row');if(!r)return;fired=false;x0=e.clientX;y0=e.clientY;t=setTimeout(()=>{fired=true;chatMenu(r.dataset.id)},500)});
+ el.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-x0,e.clientY-y0)>10)clearTimeout(t)});
+ ['pointerup','pointercancel','pointerleave'].forEach(k=>el.addEventListener(k,()=>clearTimeout(t)));
+ el.addEventListener('click',e=>{if(fired){e.stopPropagation();e.preventDefault();fired=false}},true);
+ el.addEventListener('contextmenu',e=>{const r=e.target.closest('.row');if(r){e.preventDefault();chatMenu(r.dataset.id)}})}
+function paintChips(){const el=$('#ch');if(!el)return;
+ el.innerHTML=[['all','All'],['unread','Unread'],['groups','Groups'],['arch','Archived']].map(([k,t])=>`<button class="chip${lf===k?' on':''}" data-f="${k}" aria-pressed="${lf===k}">${t}</button>`).join('');
+ el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{lf=b.dataset.f;paintChips();paintList()})}
+function paintList(){const el=$('#cl');if(!el||tab!=='chats')return;const L=chats.filter(vis).sort((a,b)=>!!pf(b,'pin')-!!pf(a,'pin'));
+ if(!L.length){el.innerHTML=`<p class="empty">${chats.length?'Nothing in this view.':'No chats yet. Tap the + button to start one.'}</p>`;return}
+ el.innerHTML=L.map(c=>{const n=cname(c),u=(c.unread||{})[me.uid]||0;
+  return`<button class="row${u?' un':''}" data-id="${c.id}">${av(n,0,c.isGroup?null:c.members.find(x=>x!==me.uid))}<span class="mid"><b>${esc(n)}</b><small>${c.lastFrom===me.uid&&c.lastText?'You: ':''}${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small><span style="display:flex;gap:4px;align-items:center">${pf(c,'pin')?ic('pin'):''}${pf(c,'mute')?ic('belloff'):''}${u?`<i class="bd">${u}</i>`:''}</span></span></button>`}).join('');
+ el.querySelectorAll('.row').forEach(b=>b.onclick=()=>openChat(chats.find(c=>c.id===b.dataset.id)))}
+
+/* ---- tabs, profile, birthdays, updates ---- */
+let tab='chats',unUpd=null;
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const mdOf=d=>(d.getMonth()+1)*100+d.getDate();
+const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h ago'};
+const live=u=>(u.updates||[]).filter(x=>Date.now()-x.at<864e5);
+function showTab(t){tab=t;if(unUpd){unUpd();unUpd=null}
+ $('#ttl').textContent={chats:'Hearth',updates:'Updates',bdays:'Birthdays',profile:'Profile'}[t];
+ document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
+ $('#ch').hidden=t!=='chats';$('#fab').hidden=t!=='chats';
+ if(t==='chats'){paintChips();paintList()}else if(t==='updates')renderUpdates();else if(t==='bdays')renderBdays();else renderProfile()}
+async function loadPhotos(){const ids=[...new Set(chats.filter(c=>!c.isGroup).map(c=>c.members.find(x=>x!==me.uid)).filter(x=>x&&!(x in UP)))];
+ for(let i=0;i<ids.length;i+=10){const ch=ids.slice(i,i+10);ch.forEach(x=>UP[x]={});
+  try{const s=await db.collection('users').where(firebase.firestore.FieldPath.documentId(),'in',ch).get();s.docs.forEach(d=>UP[d.id]={photo:d.data().photo||null})}catch(e){ch.forEach(x=>delete UP[x])}}
+ if(ids.length)paintList()}
+async function openDirect(u,pre,after){try{const members=[me.uid,u.id].sort(),ref=db.collection('chats').doc(members.join('_'));let s=await ref.get();
+ if(!s.exists){await ref.set({members,names:{[me.uid]:myName(),[u.id]:u.name},isGroup:false,title:'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});s=await ref.get()}
+ openChat({id:ref.id,...s.data()});if(pre){const t=$('#tx');if(t){t.value=pre;t.focus()}}if(after)after()}catch(e){toast('Could not open that chat.')}}
+function thumb(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const s=Math.min(i.width,i.height),c=document.createElement('canvas');c.width=c.height=160;c.getContext('2d').drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,160,160);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.7))};i.onerror=no;i.src=u})}
+/* profile */
+async function renderProfile(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';let d={};
+ try{d=(await db.collection('users').doc(me.uid).get()).data()||{}}catch(e){}
+ if(tab!=='profile')return;let ph=d.photo||null,share=!!d.bmd;UP[me.uid]={photo:ph};
+ el.innerHTML=`<div class="prof"><div id="pa">${av(myName(),88,me.uid)}</div><button class="ghost" id="pp">Change photo</button><input id="pf" type="file" accept="image/*" hidden><h3 style="text-align:center">${esc(myName())}</h3>
+ <label><span>About</span><input id="ab" maxlength="120"></label>
+ <label><span>Birthday month</span><select id="bm"><option value="0">Not set</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select></label>
+ <label><span>Birthday day</span><select id="bdy">${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}</select></label>
+ <div class="swr"><span>Share my birthday with other Hearth users</span><button type="button" class="sw" id="bs" role="switch" aria-checked="${share}" aria-label="Share my birthday"></button></div>
+ <button class="pri" id="sp">Save profile</button><button class="ghost" id="ua">Update app</button><p style="text-align:center;color:var(--mu);font-size:.85rem">Version ${APP_VER}</p></div>`;
+ $('#ab').value=d.about||'';$('#bm').value=String(d.bmd?Math.floor(d.bmd/100):0);$('#bdy').value=String(d.bmd?d.bmd%100:1);
+ $('#pp').onclick=()=>$('#pf').click();
+ $('#pf').onchange=e=>{const f=e.target.files[0];if(f)thumb(f).then(u=>{ph=u;UP[me.uid]={photo:u};$('#pa').innerHTML=av(myName(),88,me.uid)}).catch(()=>toast('That image could not be read.'))};
+ $('#bs').onclick=()=>{share=!share;$('#bs').setAttribute('aria-checked',String(share))};
+ $('#ua').onclick=async()=>{toast('Updating…');try{const r=await navigator.serviceWorker.getRegistration();if(r)await r.unregister();const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('hearth-')).map(k=>caches.delete(k)))}catch(e){}location.reload()};
+ $('#sp').onclick=async()=>{const m=+$('#bm').value,dd=+$('#bdy').value,up={about:$('#ab').value.trim(),photo:ph};
+  if(share&&!m)return toast('Choose your birthday month first, or switch sharing off.');
+  if(m&&dd>new Date(2024,m,0).getDate())return toast('That day does not exist in that month.');
+  up.bmd=share?m*100+dd:FV.delete();
+  try{await db.collection('users').doc(me.uid).set(up,{merge:true});toast('Profile saved')}catch(e){toast('Could not save your profile.')}}}
+/* birthdays */
+async function bdQuery(a,b){const s=await db.collection('users').where('bmd','>=',a).where('bmd','<=',b).get();return s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}))}
+async function renderBdays(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';const now=new Date(),a=mdOf(now),b=mdOf(new Date(now.getTime()+30*864e5));let L=[];
+ try{L=b>=a?await bdQuery(a,b):[...await bdQuery(a,1231),...await bdQuery(101,b)]}catch(e){if(tab==='bdays')el.innerHTML='<p class="empty">Could not load birthdays. Check your connection.</p>';return}
+ if(tab!=='bdays')return;const t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ L.forEach(u=>{UP[u.id]=u;let t=new Date(now.getFullYear(),Math.floor(u.bmd/100)-1,u.bmd%100);if(t<t0)t=new Date(now.getFullYear()+1,t.getMonth(),t.getDate());u.when=t;u.days=Math.round((t-t0)/864e5)});
+ L.sort((x,y)=>x.days-y.days);
+ const sec=(t,f)=>{const r=L.filter(f);return r.length?`<h4 class="sh">${t}</h4>`+r.map(u=>`<div class="row" style="cursor:default">${av(u.name,0,u.id)}<span class="mid"><b>${esc(u.name)}</b><small>${u.when.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})}</small></span><button class="pri" data-g="${u.id}" style="min-height:40px">Send greeting</button></div>`).join(''):''};
+ el.innerHTML=(sec('Today',u=>u.days===0)+sec('Next 7 days',u=>u.days>0&&u.days<=7)+sec('Next 30 days',u=>u.days>7))||'<p class="empty">No shared birthdays in the next 30 days. You can share yours in Profile.</p>';
+ el.querySelectorAll('[data-g]').forEach(bt=>bt.onclick=()=>{const u=L.find(x=>x.id===bt.dataset.g);openDirect(u,'Happy birthday, '+u.name+'!')})}
+async function birthdayToday(){const k='hearth-bd-'+new Date().toDateString();
+ try{if(localStorage.getItem(k))return;const s=await db.collection('users').where('bmd','==',mdOf(new Date())).get(),n=s.docs.filter(d=>d.id!==me.uid).map(d=>d.data().name);
+  if(n.length){toast('Birthday today: '+n.slice(0,3).join(', ')+(n.length>3?' and more':''));localStorage.setItem(k,'1')}}catch(e){}}
+/* updates (24 hours, stored on the poster's own profile) */
+function renderUpdates(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';
+ unUpd=db.collection('users').where('updAt','>',Date.now()-864e5).orderBy('updAt','desc').limit(50).onSnapshot(s=>{
+  const box=$('#cl');if(tab!=='updates'||!box)return;const L=s.docs.map(d=>({id:d.id,...d.data()})).filter(u=>live(u).length);L.forEach(u=>UP[u.id]=u);
+  const mine=L.find(u=>u.id===me.uid),others=L.filter(u=>u.id!==me.uid);
+  const row=(u,self)=>`<button class="row" data-u="${u.id}"><span class="ring">${av(self?'You':u.name,0,u.id)}</span><span class="mid"><b>${esc(self?'My updates':u.name)}</b><small>${live(u).length} update${live(u).length>1?'s':''} · ${ago(u.updAt)}</small></span></button>`;
+  box.innerHTML=`<div class="prof" style="padding-bottom:4px"><button class="pri" id="np">Post an update</button></div>`+(mine?row(mine,true):'')+(others.length?'<h4 class="sh">Recent updates</h4>'+others.map(u=>row(u)).join(''):'')+(!mine&&!others.length?'<p class="empty">No updates in the last 24 hours.</p>':'');
+  $('#np').onclick=postUpdate;box.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>viewUpdates(L.find(u=>u.id===b.dataset.u)))},
+  ()=>{if(tab==='updates'&&$('#cl'))$('#cl').innerHTML='<p class="empty">Could not load updates. Check your connection.</p>'})}
+function postUpdate(){let img=null;
+ const x=modal(`<h3>New update</h3><label><span>What is new?</span><input id="ut" maxlength="200" autocomplete="off"></label><input id="ui" type="file" accept="image/*" hidden><div class="acts" style="justify-content:space-between"><button class="ghost" id="up">Add photo</button><span id="un" style="color:var(--mu)"></span></div><div class="acts"><button class="ghost" id="uc">Cancel</button><button class="pri" id="ug">Post for 24 hours</button></div>`);
+ $('#up').onclick=()=>$('#ui').click();$('#uc').onclick=x.close;
+ $('#ui').onchange=e=>{const f=e.target.files[0];if(f)shrink(f,600,.5).then(d=>{img=d;$('#un').textContent='Photo added'}).catch(()=>toast('That image could not be read.'))};
+ $('#ug').onclick=async()=>{const t=$('#ut').value.trim();if(!t&&!img)return toast('Write something or add a photo.');
+  try{const ref=db.collection('users').doc(me.uid),d=(await ref.get()).data()||{},arr=live(d).concat([{id:String(Date.now()),t,img,at:Date.now()}]).slice(-6);
+   if(JSON.stringify(arr).length>900000)return toast('Too many photos in your updates. Delete an older one first.');
+   await ref.set({updates:arr,updAt:Date.now()},{merge:true});x.close();toast('Update posted')}catch(e){toast('Could not post your update.')}}}
+function viewUpdates(u){if(!u)return;const self=u.id===me.uid,L=live(u).slice().reverse();
+ const x=modal(`<h3>${esc(self?'My updates':u.name)}</h3><div class="res">${L.map(v=>`<div class="m" style="max-width:100%;margin-bottom:8px">${v.img?`<img src="${v.img}" alt="Update photo">`:''}${esc(v.t||'')}<span class="mt">${ago(v.at)}</span><div style="margin-top:6px">${self?`<button class="ghost" data-d="${v.id}">Delete</button>`:`<button class="ghost" data-r="${v.id}">Reply</button>`}</div></div>`).join('')}</div><div class="acts"><button class="pri" id="uv">Close</button></div>`);
+ $('#uv').onclick=x.close;
+ x.el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const v=L.find(y=>y.id===b.dataset.r);x.close();openDirect(u,'',()=>{replyTo={id:v.id,name:u.name,text:v.t||'Photo update'};paintReply();$('#tx').focus()})});
+ x.el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{x.close();confirmD('Delete this update?','It disappears for everyone straight away.','Delete update',async()=>{
+  try{const arr=live(u).filter(y=>y.id!==b.dataset.d);await db.collection('users').doc(me.uid).set({updates:arr,updAt:arr.length?arr[arr.length-1].at:0},{merge:true})}catch(e){toast('Could not delete the update.')}})})}
+
+/* ---- new chat / group ---- */
+function newChat(){const sel=new Map();let found=[],dt;
+ const m=modal(`<h3>New chat</h3><label><span>Find people by name</span><input id="q" autocomplete="off"></label><button class="row" id="sv" style="min-height:56px;padding:8px 4px">${av('Saved messages')}<span class="mid"><b>Saved messages</b><small>Notes and files for yourself</small></span></button><div id="res" class="res"></div>
+ <label id="gt" hidden><span>Group name</span><input id="gn" maxlength="40"></label>
+ <div class="acts"><button class="ghost" id="cx">Close</button><button class="pri" id="go" disabled>Start chat</button></div>`);
+ const paint=()=>{$('#res').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}">${av(u.name,0,u.id)}<span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
+  $('#res').querySelectorAll('.row').forEach(b=>b.onclick=()=>{const u=found.find(x=>x.id===b.dataset.id);sel.has(u.id)?sel.delete(u.id):sel.set(u.id,u);paint()});
+  const g=sel.size>1;$('#gt').hidden=!g;$('#go').disabled=!sel.size;$('#go').textContent=g?'Create group':'Start chat'};
+ paint();$('#cx').onclick=m.close;
+ $('#sv').onclick=async()=>{try{const ref=db.collection('chats').doc(me.uid+'_self');let s=await ref.get();
+  if(!s.exists){await ref.set({members:[me.uid],names:{[me.uid]:'Saved messages'},isGroup:false,title:'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});s=await ref.get()}
+  m.close();openChat({id:ref.id,...s.data()})}catch(x){toast('Could not open Saved messages.')}};
+ $('#q').oninput=e=>{clearTimeout(dt);const q=e.target.value.trim().normalize('NFKC').toLowerCase();
+  dt=setTimeout(async()=>{if(!q){found=[...sel.values()];return paint()}
+   try{const s=await db.collection('users').where('nameLower','>=',q).where('nameLower','<=',q+'\uf8ff').limit(15).get();
+    found=s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}));found.forEach(u=>UP[u.id]=u);sel.forEach(u=>{if(!found.some(f=>f.id===u.id))found.push(u)});paint()}
+   catch(x){toast('Search failed. Are you online?')}},300)};
+ $('#go').onclick=async()=>{const us=[...sel.values()],members=[me.uid,...us.map(u=>u.id)],names={[me.uid]:myName()};us.forEach(u=>names[u.id]=u.name);
+  try{let ref,doc;
+   if(us.length===1){ref=db.collection('chats').doc([...members].sort().join('_'));doc=await ref.get()}
+   else{const t=$('#gn').value.trim();if(!t)return toast('Give the group a name first.');ref=db.collection('chats').doc()}
+   if(!doc||!doc.exists)await ref.set({members,names,isGroup:us.length>1,title:us.length>1?$('#gn').value.trim():'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});
+   const snap=await ref.get();m.close();openChat({id:ref.id,...snap.data()})}
+  catch(x){toast('Could not create the chat.')}}}
+
+/* ---- chat screen ---- */
+function leaveChat(){stopRec(false);stopVN();replyTo=null;flt={q:'',star:false};lastSnap=null;unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
+function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}flt={q:'',star:false};replyTo=null;lastSnap=null;openUn=(c.unread||{})[me.uid]||0;if(push)history.pushState({chat:c.id},'');
+ view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40,c.isGroup?null:c.members.find(x=>x!==me.uid))}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header>
+ <div id="sr" class="rpl" hidden><label style="flex:1"><span>Search this chat</span><input id="sq" autocomplete="off"></label><button class="ghost" id="sx">Done</button></div>
+ <div id="ms" class="msgs"></div><div id="rp" class="rpl" hidden></div>
+ <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><textarea id="tx" rows="1" aria-label="Message" enterkeyhint="enter"></textarea><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
+ const cr=db.collection('chats').doc(c.id);
+ $('#bk').onclick=()=>history.back();
+ unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};
+  const who=cur.members.filter(u=>u!==me.uid&&Date.now()-(t[u]||0)<5000);
+  const sub=$('#sub');if(sub)sub.textContent=who.length?'typing…':(cur.isGroup?cur.members.length+' members':'');
+  clearTimeout(typeTimer);if(who.length)typeTimer=setTimeout(()=>{const s2=$('#sub');s2&&(s2.textContent=cur.isGroup?cur.members.length+' members':'')},5200)});
+ unMsg=cr.collection('messages').orderBy('at').limitToLast(100).onSnapshot({includeMetadataChanges:true},s=>{paintMsgs(s);markRead(s,cr)});
+ const send=()=>{const v=$('#tx').value.trim();if(!v)return;$('#tx').value='';grow();post(v,null)};
+ $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();send()}};
+ $('#tx').oninput=()=>{grow();if(Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
+ $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=e=>{if(e.target.closest('.pl'))vnClick(e)};msgGestures($('#ms'));$('#mo').onclick=chatOptions;$('#sq').oninput=e=>{flt.q=e.target.value;if(lastSnap)paintMsgs(lastSnap)};$('#sx').onclick=()=>{flt.q='';$('#sq').value='';$('#sr').hidden=true;if(lastSnap)paintMsgs(lastSnap)};paintReply();
+ $('#fi').onchange=e=>{const f=e.target.files[0];if(f)shrink(f).then(d=>post('',d)).catch(()=>toast('That image could not be read.'))}}
+function shrink(f,mx=800,q=.6){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,mx/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};i.onerror=no;i.src=u})}
+function postTo(c,text,img,aud,fwd,rep){const cr=db.collection('chats').doc(c.id),b=db.batch();
+ b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid]});
+ const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
+ b.update(cr,up);b.commit().catch(()=>toast('Could not send that message.'))}
+function post(text,img,aud){postTo(cur,text,img,aud,false,replyTo);replyTo=null;paintReply()}
+let MS={},lastSnap=null,flt={q:'',star:false},openUn=0,replyTo=null;
+const dKey=t=>(t&&t.toDate?t.toDate():new Date()).toDateString();
+function dLbl(t){const d=t&&t.toDate?t.toDate():new Date(),n=new Date();return d.toDateString()===n.toDateString()?'Today':d.toDateString()===new Date(n-864e5).toDateString()?'Yesterday':d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})}
+function paintMsgs(s){const el=$('#ms');if(!el)return;lastSnap=s;const near=el.scrollHeight-el.scrollTop-el.clientHeight<120;
+ let docs=s.docs.filter(d=>!(d.data().hiddenFor||[]).includes(me.uid));MS={};docs.forEach(d=>MS[d.id]=d.data());
+ const q=flt.q.trim().toLowerCase();if(q)docs=docs.filter(d=>(d.data().text||'').toLowerCase().includes(q));
+ if(flt.star)docs=docs.filter(d=>(d.data().starredBy||[]).includes(me.uid));
+ let ud=-1;if(openUn&&!q&&!flt.star){let n=0;for(let i=docs.length-1;i>=0;i--)if(docs[i].data().from!==me.uid&&++n===openUn){ud=i;break}}
+ let last='';
+ el.innerHTML=docs.map((d,i)=>{const m=d.data(),mine=m.from===me.uid,pend=d.metadata.hasPendingWrites,seen=mine&&(o=>o.length>0&&o.every(u=>(m.readBy||[]).includes(u)))(cur.members.filter(u=>u!==me.uid));
+  const k=dKey(m.at),sep=k!==last?`<div class="day">${dLbl(m.at)}</div>`:'';last=k;
+  const tk=mine&&!m.deleted?`<span class="tk ${seen?'rd':''}" title="${pend?'Sending':seen?'Read':'Delivered'}">${ic('check')}${pend?'':ic('check')}</span>`:'';
+  const meta=`<span class="mt">${(m.starredBy||[]).includes(me.uid)?ic('star'):''}${m.edited&&!m.deleted?'edited ':''}${ftime(m.at)}${tk}</span>`,div=i===ud?'<div class="ud">Unread messages</div>':'';
+  if(m.deleted)return sep+div+`<div class="m dl ${mine?'me':''}" data-id="${d.id}">This message was deleted${meta}</div>`;
+  const rx={};Object.values(m.reactions||{}).forEach(e=>rx[e]=(rx[e]||0)+1);
+  return sep+div+`<div class="m ${mine?'me':''}" data-id="${d.id}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.fwd?'<span class="w" style="color:var(--mu)">Forwarded</span>':''}${m.reply?`<div class="q"><b>${esc(m.reply.name)}</b><span>${esc(m.reply.text)}</span></div>`:''}${m.audio?vn(d.id,m.audio):''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${fmt(m.text||'')}${Object.keys(rx).length?`<span class="rx">${Object.entries(rx).map(([e,n])=>`<i>${e}${n>1?' '+n:''}</i>`).join('')}</span>`:''}${meta}</div>`}).join('')||'<p class="empty">No messages to show.</p>';
+ if(near||s.metadata.fromCache===false&&!el.dataset.k){el.scrollTop=el.scrollHeight;el.dataset.k=1}syncVN()}
+function msgGestures(el){let t,sx=0,sy=0,m=null,swiping=false;
+ const reset=()=>{clearTimeout(t);if(m){const x=m;x.style.transition='transform .15s';x.style.transform='';x.classList.remove('swp','rdy');setTimeout(()=>{x.style.transition=''},200)}m=null;swiping=false};
+ el.addEventListener('pointerdown',e=>{const b=e.target.closest('.m');if(!b||e.target.closest('.pl'))return;m=b;sx=e.clientX;sy=e.clientY;swiping=false;
+  t=setTimeout(()=>{if(m&&!swiping){const id=m.dataset.id;if(navigator.vibrate)navigator.vibrate(15);reset();if(id)msgMenu(id)}},450)});
+ el.addEventListener('pointermove',e=>{if(!m)return;const dx=e.clientX-sx,dy=e.clientY-sy;
+  if(!swiping){if(Math.abs(dy)>10||dx<-10){clearTimeout(t);return}if(dx>10&&dx>Math.abs(dy)*1.5){swiping=true;clearTimeout(t);m.classList.add('swp')}else return}
+  const d=Math.max(0,Math.min(dx,90));m.style.transform='translateX('+d+'px)';m.classList.toggle('rdy',d>=64)});
+ el.addEventListener('pointerup',e=>{if(m&&swiping&&e.clientX-sx>=64&&m.dataset.id){const id=m.dataset.id;if(navigator.vibrate)navigator.vibrate(10);reset();setReply(id);return}reset()});
+ el.addEventListener('pointercancel',reset);
+ el.addEventListener('contextmenu',e=>{const b=e.target.closest('.m');if(b&&b.dataset.id){e.preventDefault();reset();msgMenu(b.dataset.id)}})}
+function paintReply(){const el=$('#rp');if(!el)return;el.hidden=!replyTo;if(!replyTo){el.innerHTML='';return}
+ el.innerHTML=`<div class="q"><b>Replying to ${esc(replyTo.name)}</b><span>${esc(replyTo.text)}</span></div><button class="ib" id="rpx" aria-label="Cancel reply">${ic('x')}</button>`;$('#rpx').onclick=()=>{replyTo=null;paintReply()}}
+function setReply(id){const m=MS[id];if(!m||m.deleted)return;replyTo={id,name:cur.names[m.from]||'Member',text:m.text||(m.audio?'Voice note':'Photo')};paintReply();$('#tx').focus()}
+const upd=(ref,data)=>ref.update(data).catch(e=>toast(e&&e.code==='permission-denied'?'The database refused this change. Publish the latest firestore.rules in Firebase.':'Could not save that change.'));
+function msgMenu(id){const m=MS[id];if(!m)return;const mine=m.from===me.uid,cr=db.collection('chats').doc(cur.id).collection('messages').doc(id),del=!!m.deleted,st=(m.starredBy||[]).includes(me.uid),acts=[];
+ if(!del){acts.push(['Reply',()=>setReply(id)]);
+  if(m.text)acts.push(['Copy text',()=>navigator.clipboard.writeText(m.text).then(()=>toast('Copied'),()=>toast('Could not copy.'))]);
+  acts.push(['Forward',()=>fwdPick(m)]);
+  acts.push([st?'Remove star':'Star message',()=>upd(cr,{starredBy:st?FV.arrayRemove(me.uid):FV.arrayUnion(me.uid)})]);
+  if(mine&&m.text&&!m.audio&&!m.img)acts.push(['Edit message',()=>editMsg(cr,m)]);
+  if(mine&&cur.isGroup)acts.push(['Who has read this',()=>{const r=cur.members.filter(u=>u!==me.uid&&(m.readBy||[]).includes(u)).map(u=>cur.names[u]||'Member');const x=modal(`<h3>Read by</h3><p>${r.length?esc(r.join(', ')):'Nobody yet.'}</p><div class="acts"><button class="pri" id="rd">Back to chat</button></div>`);$('#rd').onclick=x.close}])}
+ acts.push(['Delete for me',()=>upd(cr,{hiddenFor:FV.arrayUnion(me.uid)})]);
+ if(mine&&!del)acts.push(['Delete for everyone',()=>confirmD('Delete for everyone?','This removes the message for all members and cannot be undone.','Delete for everyone',()=>upd(cr,{deleted:true,text:'',img:null,audio:null}))]);
+ const mo=sheet(acts,del?'':'<div class="emo">'+['👍','❤️','😂','😮','😢','🙏'].map(e=>`<button data-e="${e}" aria-label="React ${e}">${e}</button>`).join('')+'</div>');
+ mo.el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const same=(m.reactions||{})[me.uid]===b.dataset.e;upd(cr,{['reactions.'+me.uid]:same?FV.delete():b.dataset.e});mo.close()})}
+function editMsg(cr,m){const x=modal(`<h3>Edit message</h3><label><span>Message</span><input id="ed"></label><div class="acts"><button class="ghost" id="ec">Keep original</button><button class="pri" id="es">Save change</button></div>`);
+ $('#ed').value=m.text;$('#ec').onclick=x.close;$('#es').onclick=()=>{const v=$('#ed').value.trim();if(!v)return toast('A message cannot be empty.');x.close();if(v!==m.text)upd(cr,{text:v,edited:true})}}
+function fwdPick(m){const x=modal(`<h3>Forward to</h3><div class="res">${chats.map(c=>`<button class="row" data-id="${c.id}">${av(cname(c))}<span class="mid"><b>${esc(cname(c))}</b></span></button>`).join('')}</div><div class="acts"><button class="ghost" id="fc">Cancel</button></div>`);
+ $('#fc').onclick=x.close;x.el.querySelectorAll('.row').forEach(b=>b.onclick=()=>{const c=chats.find(y=>y.id===b.dataset.id);x.close();postTo(c,m.text||'',m.img||null,m.audio||null,true,null);toast('Forwarded to '+cname(c))})}
+function chatOptions(){sheet([['Search in this chat',()=>{$('#sr').hidden=false;$('#sq').focus()}],[flt.star?'Show all messages':'Show starred messages',()=>{flt.star=!flt.star;if(lastSnap)paintMsgs(lastSnap);toast(flt.star?'Showing starred messages':'Showing all messages')}],...prefActs(cur)])}
+function markRead(s,cr){if(s.metadata.hasPendingWrites)return;const un=s.docs.filter(d=>d.data().from!==me.uid&&!(d.data().readBy||[]).includes(me.uid));
+ if(un.length){const b=db.batch();un.forEach(d=>b.update(d.ref,{readBy:FV.arrayUnion(me.uid)}));b.commit().catch(()=>{})}
+ if(((cur.unread||{})[me.uid]||0)>0)cr.update({['unread.'+me.uid]:0}).catch(()=>{})}
+
+/* ---- voice notes ---- */
+const vnData={},vnDur={};let rec=null,vnA=null,vnId=null;
+const fmtS=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
+function vn(id,a){vnData[id]=a.d;vnDur[id]=a.s;return`<div class="vn"><button class="ib pl" data-v="${id}" aria-label="Play voice note">${ic('play')}</button><span class="pb"><i></i></span><small>${fmtS(a.s)}</small></div>`}
+function info(t){const m=modal(`<h3>Voice notes</h3><p>${esc(t)}</p><div class="acts"><button class="pri" id="ix">Back to chat</button></div>`);$('#ix').onclick=m.close}
+function paintComp(){const c=$('.comp'),b=$('#rb');if(c)c.classList.toggle('rec',!!rec);if(b)b.hidden=!rec}
+async function startRec(){if(rec)return;
+ if(!navigator.mediaDevices||!window.MediaRecorder)return info('This browser cannot record audio. Try Chrome on Android or Safari on iPhone.');
+ try{const st=await navigator.mediaDevices.getUserMedia({audio:true});
+  const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm'].find(x=>MediaRecorder.isTypeSupported(x));
+  const r=new MediaRecorder(st,mime?{mimeType:mime,audioBitsPerSecond:24000}:{}),x={r,st,ch:[],t0:Date.now(),send:false};
+  r.ondataavailable=e=>{if(e.data.size)x.ch.push(e.data)};
+  r.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(x.iv);rec=null;paintComp();if(x.send)finishRec(x,r.mimeType)};
+  rec=x;r.start();x.iv=setInterval(()=>{const s=(Date.now()-x.t0)/1000,t=$('#rt');if(t)t.textContent=fmtS(s);if(s>=60)stopRec(true)},250);paintComp()}
+ catch(e){info('Microphone access is blocked. Allow the microphone for this site in your browser settings, then try again.')}}
+function stopRec(send){if(!rec||rec.r.state==='inactive')return;rec.send=send;rec.r.stop()}
+function finishRec(x,mime){const s=Math.round((Date.now()-x.t0)/1000);if(s<1)return toast('That voice note was too short.');
+ const fr=new FileReader();fr.onload=()=>{if(fr.result.length>900000)return toast('That voice note is too large to send.');post('',null,{d:fr.result,s})};
+ fr.readAsDataURL(new Blob(x.ch,{type:mime||'audio/webm'}))}
+function vnClick(e){const b=e.target.closest('.pl');if(!b)return;const id=b.dataset.v;
+ if(vnId===id&&vnA){if(vnA.paused)vnA.play();else vnA.pause();return}
+ stopVN();vnId=id;vnA=new Audio(vnData[id]);
+ vnA.ontimeupdate=syncVN;vnA.onpause=syncVN;vnA.onplay=syncVN;vnA.onended=stopVN;
+ vnA.play().catch(()=>{toast('Could not play that voice note.');stopVN()})}
+function stopVN(){if(vnA){vnA.onpause=vnA.onplay=vnA.ontimeupdate=vnA.onended=null;vnA.pause()}vnA=null;vnId=null;syncVN()}
+function syncVN(){document.querySelectorAll('.pl').forEach(b=>{const id=b.dataset.v,on=id===vnId&&vnA,pl=on&&!vnA.paused;
+ b.innerHTML=ic(pl?'pause':'play');b.setAttribute('aria-label',pl?'Pause voice note':'Play voice note');
+ const i=b.parentNode.querySelector('.pb i');if(i)i.style.width=on?Math.min(100,vnA.currentTime/(vnDur[id]||1)*100)+'%':'0'})}
+
+/* ---- navigation ---- */
+history.replaceState({},'');
+addEventListener('popstate',e=>{if(ignorePop){ignorePop--;return}if(mClose){mClose(true);return}if(me&&!(e.state&&e.state.chat))listView()});
+}
+function showUpdate(){if($('#upd'))return;const b=document.createElement('div');b.id='upd';b.className='updbar';b.setAttribute('role','status');
+ b.innerHTML='<span>A new version of Hearth is ready.</span><button class="pri" id="ur">Reload now</button>';document.body.appendChild(b);$('#ur').onclick=()=>location.reload()}
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
+ let had=!!navigator.serviceWorker.controller,rl=false;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){const tx=document.getElementById('tx');if(document.querySelector('.comp.rec')||(tx&&tx.value.trim()))showUpdate();else{rl=true;location.reload()}}had=true});
+ navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='hearth-update-ready')showUpdate()})}
+</script></body></html>
