@@ -5,8 +5,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
 <style>
-:root{--bg:#f6f3ee;--sf:#fff;--tx:#231f1a;--mu:#7a7168;--ac:#d9661f;--on:#fff;--mine:#fbe3cf;--bd:#e7e0d6;--rd:#2f8f6b;--er:#b3261e}
-[data-theme=dark]{--bg:#14171a;--sf:#1d2226;--tx:#ece7e0;--mu:#8d948f;--ac:#f08a4b;--on:#1a1208;--mine:#4a2c17;--bd:#2b3238;--rd:#5fd0a0;--er:#f2b8b5}
+:root{--bg:#f6f3ee;--sf:#fff;--tx:#231f1a;--mu:#7a7168;--ac:#d9661f;--on:#fff;--mine:#fbe3cf;--bd:#e7e0d6;--rd:#1e88e5;--er:#b3261e}
+[data-theme=dark]{--bg:#14171a;--sf:#1d2226;--tx:#ece7e0;--mu:#8d948f;--ac:#f08a4b;--on:#1a1208;--mine:#4a2c17;--bd:#2b3238;--rd:#64b5f6;--er:#f2b8b5}
 *{box-sizing:border-box;margin:0}html,body{height:100%;overflow:hidden}
 body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,"Segoe UI","Noto Sans","Noto Color Emoji","Apple Color Emoji",sans-serif;overscroll-behavior:none}
 button,input{font:inherit;color:inherit}button{background:none;border:0;cursor:pointer;touch-action:manipulation}
@@ -86,6 +86,9 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 .comp textarea{flex:1;min-width:0;min-height:44px;max-height:120px;border-radius:22px;border:1.5px solid var(--bd);background:var(--bg);padding:9px 16px;resize:none;font:inherit;line-height:1.35;color:inherit}
 .comp textarea:focus{outline:2px solid var(--ac);outline-offset:1px}
 .updbar{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top));z-index:9;background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:8px 8px 8px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 16px #0003}.updbar span{flex:1;font-weight:700}.updbar button{min-height:40px;padding:0 14px}
+#app{position:fixed;top:0;left:0;right:0;height:var(--vh,100dvh);margin:0 auto;overflow-y:auto}
+.comp,.bar,.tabs,.rpl{flex:none}
+.bar [hidden]{display:none}.tk.pd{opacity:.5}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -121,7 +124,7 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
 const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
 
-const APP_VER='10';
+const APP_VER='11';
 const $=(s,e=document)=>e.querySelector(s);
 const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -137,6 +140,9 @@ const av=(n,sz,uid)=>{const ph=uid&&UP[uid]&&UP[uid].photo,g=seg(String(n).trim(
  return`<span class="av" style="background:${ph?`url('${ph}') center/cover`:`hsl(${Math.abs(hue)} 50% 40%)`}${sz?`;width:${sz}px;height:${sz}px`:''}">${ph?'':esc(g.toUpperCase())}</span>`};
 const fmt=s=>esc(s).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s).,!?:;])/g,'$1<b>$2</b>').replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;])/g,'$1<i>$2</i>').replace(/(^|[\s(])~([^~\n]+)~(?=$|[\s).,!?:;])/g,'$1<s>$2</s>');
 const grow=()=>{const t=$('#tx');if(t){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}};
+const setVH=()=>{const v=window.visualViewport;document.documentElement.style.setProperty('--vh',(v?v.height:innerHeight)+'px')};
+setVH();addEventListener('resize',setVH);addEventListener('orientationchange',setVH);
+if(window.visualViewport){visualViewport.addEventListener('resize',setVH);visualViewport.addEventListener('scroll',()=>{setVH();scrollTo(0,0)})}
 document.addEventListener('gesturestart',e=>e.preventDefault());
 addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
 
@@ -154,11 +160,15 @@ function ping(){if(muted||!ac)return;try{const t=ac.currentTime;[880,1175].forEa
 function toggleMute(){muted=!muted;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}const b=$('#mu');if(b){b.innerHTML=ic(muted?'belloff':'bell');b.setAttribute('aria-label',muted?'Unmute sounds':'Mute sounds')}toast(muted?'Sounds muted':'Sounds on');if(!muted)ping()}
 
 /* ---- modal ---- */
-let mClose=null,ignorePop=0;
+let mClose=null,backTimer=0;
 function modal(html){const d=$('#dlg'),prev=document.activeElement;if(mClose)mClose(true);
- d.innerHTML=`<div class="card" role="dialog" aria-modal="true">${html}</div>`;d.classList.add('o');history.pushState({modal:1},'');
+ d.innerHTML=`<div class="card" role="dialog" aria-modal="true">${html}</div>`;d.classList.add('o');
+ /* a sheet closed a moment ago still owns the top history entry: reuse it instead of racing history.back() */
+ if(backTimer&&history.state&&history.state.k==='modal'){history.replaceState({k:'modal'},'')}else history.pushState({k:'modal'},'');
+ clearTimeout(backTimer);backTimer=0;
  let done=false;
- const close=fromPop=>{if(done)return;done=true;mClose=null;d.classList.remove('o');d.innerHTML='';document.removeEventListener('keydown',k);if(prev&&prev.focus)prev.focus();if(!fromPop){ignorePop++;history.back()}};
+ const close=fromPop=>{if(done)return;done=true;if(mClose===close)mClose=null;d.classList.remove('o');d.innerHTML='';document.removeEventListener('keydown',k);if(prev&&prev.focus)prev.focus();
+  if(!fromPop&&history.state&&history.state.k==='modal'){clearTimeout(backTimer);backTimer=setTimeout(()=>{backTimer=0;if(!mClose&&history.state&&history.state.k==='modal')history.back()},0)}};
  const k=e=>{if(e.key==='Escape')close(false)};document.addEventListener('keydown',k);
  d.onclick=e=>{if(e.target===d)close(false)};mClose=close;const f=$('input',d);if(f)f.focus();return{el:d,close:()=>close(false)}}
 
@@ -195,16 +205,20 @@ auth.onAuthStateChanged(u=>{me=u;unList&&unList();unList=null;
 
 /* ---- chat list ---- */
 const cname=c=>c.isGroup?c.title:c.members.length===1?'Saved messages':(c.names[c.members.find(x=>x!==me.uid)]||'Chat');
+const dlvSent={};
+function markDelivered(fromCache){if(fromCache)return;chats.forEach(c=>{if(!c.lastFrom||c.lastFrom===me.uid||!c.lastAt||!c.lastAt.toMillis)return;
+ const last=c.lastAt.toMillis(),d=(c.delivered||{})[me.uid];if((d&&d.toMillis&&d.toMillis()>=last)||dlvSent[c.id]>=last)return;dlvSent[c.id]=last;
+ db.collection('chats').doc(c.id).update({['delivered.'+me.uid]:FV.serverTimestamp()}).catch(()=>{})})}
 let prevUn={},primed=false;
 function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0)&&!pf(c,'mute')&&!pf(c,'arch'))hit=c;prevUn[c.id]=u});
  if(hit){ping();if(!cur||cur.id!==hit.id)toast('New message from '+cname(hit))}if(!fromCache)primed=true}
 function listenChats(){unList&&unList();prevUn={};primed=false;birthdayToday();
  unList=db.collection('chats').where('members','array-contains',me.uid).onSnapshot(s=>{
-  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);loadPhotos();paintList()},
+  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);markDelivered(s.metadata.fromCache);loadPhotos();paintList()},
   ()=>toast('Could not load chats. Check rules and connection.'))}
 function listView(){leaveChat();
- view(`<header class="bar"><h2 id="ttl">Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><nav class="tabs" aria-label="Sections">${[['chats','chat','Chats'],['updates','updates','Updates'],['bdays','gift','Birthdays'],['profile','user','Profile']].map(([k,i,t])=>`<button data-t="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</nav><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
- $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));showTab(tab)}
+ view(`<header class="bar"><button id="hb" aria-label="Back to chats" hidden>${ic('back')}</button><h2 id="ttl">Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><nav class="tabs" aria-label="Sections">${[['chats','chat','Chats'],['updates','updates','Updates'],['bdays','gift','Birthdays'],['profile','user','Profile']].map(([k,i,t])=>`<button data-t="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</nav><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.t));$('#hb').onclick=()=>goTab('chats');showTab(tab)}
 let lf='all';
 const pf=(c,k)=>(c[k]||{})[me.uid];
 const vis=c=>{const u=(c.unread||{})[me.uid]||0;if(lf==='arch')return pf(c,'arch');if(pf(c,'arch'))return false;return lf==='unread'?u>0:lf==='groups'?c.isGroup:true};
@@ -235,10 +249,13 @@ const MON=['January','February','March','April','May','June','July','August','Se
 const mdOf=d=>(d.getMonth()+1)*100+d.getDate();
 const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h ago'};
 const live=u=>(u.updates||[]).filter(x=>Date.now()-x.at<864e5);
+function goTab(t){if(t===tab)return;const st=history.state||{},inTab=st.k==='list'&&st.tab&&st.tab!=='chats';
+ if(t==='chats'){if(inTab)history.back();else showTab('chats');return}
+ if(inTab)history.replaceState({k:'list',tab:t},'');else history.pushState({k:'list',tab:t},'');showTab(t)}
 function showTab(t){tab=t;if(unUpd){unUpd();unUpd=null}
  $('#ttl').textContent={chats:'Hearth',updates:'Updates',bdays:'Birthdays',profile:'Profile'}[t];
  document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
- $('#ch').hidden=t!=='chats';$('#fab').hidden=t!=='chats';
+ $('#ch').hidden=t!=='chats';$('#fab').hidden=t!=='chats';$('#hb').hidden=t==='chats';
  if(t==='chats'){paintChips();paintList()}else if(t==='updates')renderUpdates();else if(t==='bdays')renderBdays();else renderProfile()}
 async function loadPhotos(){const ids=[...new Set(chats.filter(c=>!c.isGroup).map(c=>c.members.find(x=>x!==me.uid)).filter(x=>x&&!(x in UP)))];
  for(let i=0;i<ids.length;i+=10){const ch=ids.slice(i,i+10);ch.forEach(x=>UP[x]={});
@@ -332,14 +349,14 @@ function newChat(){const sel=new Map();let found=[],dt;
 
 /* ---- chat screen ---- */
 function leaveChat(){stopRec(false);stopVN();replyTo=null;flt={q:'',star:false};lastSnap=null;unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
-function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}flt={q:'',star:false};replyTo=null;lastSnap=null;openUn=(c.unread||{})[me.uid]||0;if(push)history.pushState({chat:c.id},'');
+function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}flt={q:'',star:false};replyTo=null;lastSnap=null;openUn=(c.unread||{})[me.uid]||0;if(push)history.pushState({k:'chat',id:c.id},'');
  view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40,c.isGroup?null:c.members.find(x=>x!==me.uid))}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header>
  <div id="sr" class="rpl" hidden><label style="flex:1"><span>Search this chat</span><input id="sq" autocomplete="off"></label><button class="ghost" id="sx">Done</button></div>
  <div id="ms" class="msgs"></div><div id="rp" class="rpl" hidden></div>
  <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><textarea id="tx" rows="1" aria-label="Message" enterkeyhint="enter"></textarea><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
  const cr=db.collection('chats').doc(c.id);
  $('#bk').onclick=()=>history.back();
- unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};
+ unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};const dk=JSON.stringify(Object.entries(cur.delivered||{}).map(([k,v])=>[k,v&&v.seconds]));if(dk!==lastDk){lastDk=dk;if(lastSnap)paintMsgs(lastSnap)}
   const who=cur.members.filter(u=>u!==me.uid&&Date.now()-(t[u]||0)<5000);
   const sub=$('#sub');if(sub)sub.textContent=who.length?'typing…':(cur.isGroup?cur.members.length+' members':'');
   clearTimeout(typeTimer);if(who.length)typeTimer=setTimeout(()=>{const s2=$('#sub');s2&&(s2.textContent=cur.isGroup?cur.members.length+' members':'')},5200)});
@@ -355,7 +372,7 @@ function postTo(c,text,img,aud,fwd,rep){const cr=db.collection('chats').doc(c.id
  const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
  b.update(cr,up);b.commit().catch(()=>toast('Could not send that message.'))}
 function post(text,img,aud){postTo(cur,text,img,aud,false,replyTo);replyTo=null;paintReply()}
-let MS={},lastSnap=null,flt={q:'',star:false},openUn=0,replyTo=null;
+let lastDk='',MS={},lastSnap=null,flt={q:'',star:false},openUn=0,replyTo=null;
 const dKey=t=>(t&&t.toDate?t.toDate():new Date()).toDateString();
 function dLbl(t){const d=t&&t.toDate?t.toDate():new Date(),n=new Date();return d.toDateString()===n.toDateString()?'Today':d.toDateString()===new Date(n-864e5).toDateString()?'Yesterday':d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})}
 function paintMsgs(s){const el=$('#ms');if(!el)return;lastSnap=s;const near=el.scrollHeight-el.scrollTop-el.clientHeight<120;
@@ -366,7 +383,7 @@ function paintMsgs(s){const el=$('#ms');if(!el)return;lastSnap=s;const near=el.s
  let last='';
  el.innerHTML=docs.map((d,i)=>{const m=d.data(),mine=m.from===me.uid,pend=d.metadata.hasPendingWrites,seen=mine&&(o=>o.length>0&&o.every(u=>(m.readBy||[]).includes(u)))(cur.members.filter(u=>u!==me.uid));
   const k=dKey(m.at),sep=k!==last?`<div class="day">${dLbl(m.at)}</div>`:'';last=k;
-  const tk=mine&&!m.deleted?`<span class="tk ${seen?'rd':''}" title="${pend?'Sending':seen?'Read':'Delivered'}">${ic('check')}${pend?'':ic('check')}</span>`:'';
+  const oth=cur.members.filter(u=>u!==me.uid),ms=m.at&&m.at.toMillis?m.at.toMillis():0,dlv=mine&&!pend&&ms>0&&oth.length>0&&oth.every(u=>{const t=(cur.delivered||{})[u];return t&&t.toMillis&&t.toMillis()>=ms}),tk=mine&&!m.deleted?`<span class="tk ${seen?'rd':''}${pend?' pd':''}" title="${pend?'Sending':seen?'Read':dlv?'Delivered':'Sent'}">${ic('check')}${seen||dlv?ic('check'):''}</span>`:'';
   const meta=`<span class="mt">${(m.starredBy||[]).includes(me.uid)?ic('star'):''}${m.edited&&!m.deleted?'edited ':''}${ftime(m.at)}${tk}</span>`,div=i===ud?'<div class="ud">Unread messages</div>':'';
   if(m.deleted)return sep+div+`<div class="m dl ${mine?'me':''}" data-id="${d.id}">This message was deleted${meta}</div>`;
   const rx={};Object.values(m.reactions||{}).forEach(e=>rx[e]=(rx[e]||0)+1);
@@ -436,8 +453,12 @@ function syncVN(){document.querySelectorAll('.pl').forEach(b=>{const id=b.datase
  const i=b.parentNode.querySelector('.pb i');if(i)i.style.width=on?Math.min(100,vnA.currentTime/(vnDur[id]||1)*100)+'%':'0'})}
 
 /* ---- navigation ---- */
-history.replaceState({},'');
-addEventListener('popstate',e=>{if(ignorePop){ignorePop--;return}if(mClose){mClose(true);return}if(me&&!(e.state&&e.state.chat))listView()});
+history.replaceState({k:'list',tab:'chats'},'');
+addEventListener('popstate',e=>{if(!me)return;const st=e.state||{k:'list',tab:'chats'};
+ if(st.k==='modal'){if(!mClose)history.back();return}
+ if(mClose)mClose(true);
+ if(st.k==='chat'){if(!cur||cur.id!==st.id){const c=chats.find(x=>x.id===st.id);if(c)openChat(c,false);else{tab='chats';listView()}}return}
+ const t=st.tab||'chats';if(cur||!$('#cl')||tab!==t){tab=t;listView()}});
 }
 function showUpdate(){if($('#upd'))return;const b=document.createElement('div');b.id='upd';b.className='updbar';b.setAttribute('role','status');
  b.innerHTML='<span>A new version of Hearth is ready.</span><button class="pri" id="ur">Reload now</button>';document.body.appendChild(b);$('#ur').onclick=()=>location.reload()}
