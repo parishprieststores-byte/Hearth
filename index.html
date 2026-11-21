@@ -89,6 +89,8 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 #app{position:fixed;top:0;left:0;right:0;height:var(--vh,100dvh);margin:0 auto;overflow-y:auto}
 .comp,.bar,.tabs,.rpl{flex:none}
 .bar [hidden]{display:none}.tk.pd{opacity:.5}
+[hidden]{display:none!important}
+#bd-ed{white-space:nowrap;flex:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -124,7 +126,7 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
 const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
 
-const APP_VER='11';
+const APP_VER='12';
 const $=(s,e=document)=>e.querySelector(s);
 const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -271,20 +273,22 @@ async function renderProfile(){const el=$('#cl');el.innerHTML='<p class="empty">
  if(tab!=='profile')return;let ph=d.photo||null,share=!!d.bmd;UP[me.uid]={photo:ph};
  el.innerHTML=`<div class="prof"><div id="pa">${av(myName(),88,me.uid)}</div><button class="ghost" id="pp">Change photo</button><input id="pf" type="file" accept="image/*" hidden><h3 style="text-align:center">${esc(myName())}</h3>
  <label><span>About</span><input id="ab" maxlength="120"></label>
- <label><span>Birthday month</span><select id="bm"><option value="0">Not set</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select></label>
+ <div id="bd-edit"><label><span>Birthday month</span><select id="bm"><option value="0">Not set</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select></label>
  <label><span>Birthday day</span><select id="bdy">${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}</select></label>
- <div class="swr"><span>Share my birthday with other Hearth users</span><button type="button" class="sw" id="bs" role="switch" aria-checked="${share}" aria-label="Share my birthday"></button></div>
+ <div class="swr"><span>Share my birthday with other Hearth users</span><button type="button" class="sw" id="bs" role="switch" aria-checked="${share}" aria-label="Share my birthday"></button></div></div><div class="swr" id="bd-sum" hidden><span id="bd-txt"></span><button type="button" class="ghost" id="bd-ed">Edit birthday</button></div>
  <button class="pri" id="sp">Save profile</button><button class="ghost" id="ua">Update app</button><p style="text-align:center;color:var(--mu);font-size:.85rem">Version ${APP_VER}</p></div>`;
  $('#ab').value=d.about||'';$('#bm').value=String(d.bmd?Math.floor(d.bmd/100):0);$('#bdy').value=String(d.bmd?d.bmd%100:1);
  $('#pp').onclick=()=>$('#pf').click();
  $('#pf').onchange=e=>{const f=e.target.files[0];if(f)thumb(f).then(u=>{ph=u;UP[me.uid]={photo:u};$('#pa').innerHTML=av(myName(),88,me.uid)}).catch(()=>toast('That image could not be read.'))};
  $('#bs').onclick=()=>{share=!share;$('#bs').setAttribute('aria-checked',String(share))};
+ const lockBd=on=>{$('#bd-edit').hidden=on;$('#bd-sum').hidden=!on;if(on){const m=+$('#bm').value,dd=+$('#bdy').value;$('#bd-txt').textContent=share&&m?dd+' '+MON[m-1]+' · shared with Hearth users':'Birthday not shared'}};
+ $('#bd-ed').onclick=()=>{lockBd(false);$('#bm').focus()};lockBd(!!d.bmd);
  $('#ua').onclick=async()=>{toast('Updating…');try{const r=await navigator.serviceWorker.getRegistration();if(r)await r.unregister();const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('hearth-')).map(k=>caches.delete(k)))}catch(e){}location.reload()};
  $('#sp').onclick=async()=>{const m=+$('#bm').value,dd=+$('#bdy').value,up={about:$('#ab').value.trim(),photo:ph};
   if(share&&!m)return toast('Choose your birthday month first, or switch sharing off.');
   if(m&&dd>new Date(2024,m,0).getDate())return toast('That day does not exist in that month.');
   up.bmd=share?m*100+dd:FV.delete();
-  try{await db.collection('users').doc(me.uid).set(up,{merge:true});toast('Profile saved')}catch(e){toast('Could not save your profile.')}}}
+  try{await db.collection('users').doc(me.uid).set(up,{merge:true});toast('Profile saved');lockBd(true)}catch(e){toast('Could not save your profile.')}}}
 /* birthdays */
 async function bdQuery(a,b){const s=await db.collection('users').where('bmd','>=',a).where('bmd','<=',b).get();return s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}))}
 async function renderBdays(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';const now=new Date(),a=mdOf(now),b=mdOf(new Date(now.getTime()+30*864e5));let L=[];
