@@ -102,3 +102,4 @@ async function cacheFirst(request, event) {
   }
   return fresh;
 }
+  
