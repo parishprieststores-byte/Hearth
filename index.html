@@ -105,17 +105,6 @@ body{font-size:1rem}
 .wp.grid{background-image:linear-gradient(var(--bd) 1px,transparent 1px),linear-gradient(90deg,var(--bd) 1px,transparent 1px);background-size:14px 14px}
 .wp.lines{background-image:repeating-linear-gradient(135deg,var(--bd) 0 1px,transparent 1px 9px)}
 input[type=range]{width:100%;accent-color:var(--ac)}
-.earlier{align-self:center;min-height:36px;padding:0 14px;border-radius:18px;background:var(--sf);border:1px solid var(--bd);font-weight:700;color:var(--ac);flex:none}
-.dn{position:absolute;right:14px;bottom:calc(72px + env(safe-area-inset-bottom));width:42px;height:42px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);box-shadow:0 3px 8px #0003;display:grid;place-items:center;z-index:3}.dn .bd{position:absolute;top:-8px;right:-4px}
-.pinbar{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--sf);border-bottom:1px solid var(--bd);flex:none;cursor:pointer}.pinbar .ic{color:var(--ac);width:18px;height:18px}.pinbar .mid b{font-size:.85rem;color:var(--ac)}.pinbar .mid small{font-size:.9rem}
-.m.flash{outline:2px solid var(--ac);outline-offset:2px}.m.selected{outline:2px solid var(--ac);outline-offset:1px}
-.spd{min-width:42px;min-height:30px;border-radius:15px;background:var(--bd);font-weight:700;font-size:.8rem}
-#dlg.vw{background:#000d;align-items:center}#dlg.vw .card{background:transparent;padding:12px;max-height:none;border-radius:0;align-items:center}#dlg.vw .vwimg{max-width:100%;max-height:74dvh;object-fit:contain;border-radius:8px}.vwa{display:inline-flex;align-items:center;text-decoration:none}
-body.offline #app::before{content:"You are offline. Messages will send when you reconnect.";display:block;flex:none;background:#b3261e;color:#fff;text-align:center;font-size:.85rem;font-weight:700;padding:4px 8px}
-.chip .cn{font-style:normal;margin-left:6px;background:var(--ac);color:var(--on);border-radius:99px;padding:0 6px;font-size:.75rem}
-.lock{position:fixed;inset:0;background:var(--bg);z-index:30;display:grid;place-items:center}
-.lkbox{width:min(320px,90vw);text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}.dots{display:flex;gap:14px}.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ac)}.dots i.f{background:var(--ac)}
-.pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center}.pad button{height:64px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);font-size:1.4rem;font-weight:700;display:grid;place-items:center}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -146,17 +135,435 @@ body.offline #app::before{content:"You are offline. Messages will send when you 
 <symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2M6 10v4"/></symbol>
 <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
 <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
-<symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
-<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
-<symbol id="i-fwd" viewBox="0 0 24 24"><path d="M15 4l6 6-6 6M21 10H9a6 6 0 0 0-6 6v4"/></symbol>
-<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
-<symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/></symbol>
-<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
 </defs></svg>
-<div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div><div id="lk" class="lock" hidden></div>
+<div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
-const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDoma
+const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
+
+const APP_VER='13';
+const $=(s,e=document)=>e.querySelector(s);
+const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const view=h=>{$('#app').innerHTML=h};
+const ftime=t=>t&&t.toDate?t.toDate().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('o');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('o'),3000)}
+
+/* ---- names: any Unicode (styled text, emoji) ---- */
+const seg=s=>window.Intl&&Intl.Segmenter?[...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(String(s))].map(x=>x.segment):Array.from(String(s));
+const clip=(s,n=40)=>seg(s).slice(0,n).join('');
+const UP={};
+const av=(n,sz,uid)=>{const ph=uid&&UP[uid]&&UP[uid].photo,g=seg(String(n).trim())[0]||'?',hue=Array.from(String(n)).reduce((a,c)=>(a*31+c.codePointAt(0))|0,7)%360;
+ return`<span class="av" style="background:${ph?`url('${ph}') center/cover`:`hsl(${Math.abs(hue)} 50% 40%)`}${sz?`;width:${sz}px;height:${sz}px`:''}">${ph?'':esc(g.toUpperCase())}</span>`};
+const fmt=s=>esc(s).replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/(^|[\s(])\*([^*\n]+)\*(?=$|[\s).,!?:;])/g,'$1<b>$2</b>').replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;])/g,'$1<i>$2</i>').replace(/(^|[\s(])~([^~\n]+)~(?=$|[\s).,!?:;])/g,'$1<s>$2</s>');
+const grow=()=>{const t=$('#tx');if(t){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}};
+const setVH=()=>{const v=window.visualViewport;document.documentElement.style.setProperty('--vh',(v?v.height:innerHeight)+'px')};
+setVH();addEventListener('resize',setVH);addEventListener('orientationchange',setVH);
+if(window.visualViewport){visualViewport.addEventListener('resize',setVH);visualViewport.addEventListener('scroll',()=>{setVH();scrollTo(0,0)})}
+document.addEventListener('gesturestart',e=>e.preventDefault());
+addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault()});
+
+/* ---- theme ---- */
+const mq=matchMedia('(prefers-color-scheme:dark)');
+function applyTheme(){let t=null;try{t=localStorage.getItem('hearth-theme')}catch(e){}document.documentElement.dataset.theme=t||(mq.matches?'dark':'light')}
+function flipTheme(){const n=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('hearth-theme',n)}catch(e){}applyTheme()}
+mq.addEventListener('change',applyTheme);applyTheme();
+
+/* ---- sound ---- */
+let ac=null,muted=false;try{muted=localStorage.getItem('hearth-mute')==='1'}catch(e){}
+function unlock(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
+['touchstart','click','keydown'].forEach(t=>addEventListener(t,unlock,{passive:true}));
+function toggleMute(){muted=!muted;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}const b=$('#mu');if(b){b.innerHTML=ic(muted?'belloff':'bell');b.setAttribute('aria-label',muted?'Unmute sounds':'Mute sounds')}toast(muted?'Sounds muted':'Sounds on');if(!muted)ping()}
+
+/* ---- settings and tones (saved on this device only) ---- */
+const SK='hearth-settings';let S={tone:'chime',vol:.8,wp:'dots',size:100,enter:false,save:false,photo:'std',toast:true,bday:true,customName:''};
+try{Object.assign(S,JSON.parse(localStorage.getItem(SK)||'{}'))}catch(e){}
+const saveS=()=>{try{localStorage.setItem(SK,JSON.stringify(S))}catch(e){}};
+function applyS(){const r=document.documentElement;r.dataset.wp=S.wp;r.dataset.save=S.save?'1':'';r.style.fontSize=S.size+'%'}
+applyS();
+const PH={low:[600,.5],std:[800,.6],high:[1200,.7]};
+function setTheme(v){try{if(v==='system')localStorage.removeItem('hearth-theme');else localStorage.setItem('hearth-theme',v)}catch(e){}applyTheme()}
+const themePref=()=>{try{return localStorage.getItem('hearth-theme')||'system'}catch(e){return'system'}};
+const TONES={chime:['Chime',[[880,0,.25],[1175,.12,.35]]],bell:['Bell',[[1318,0,.7],[2637,0,.4,'sine',0,.08]]],drop:['Drop',[[900,0,.28,'sine',420]]],pop:['Pop',[[500,0,.09,'triangle',900,.3]]],
+ marimba:['Marimba',[[523,0,.3,'triangle'],[659,.14,.3,'triangle'],[784,.28,.45,'triangle']]],ripple:['Ripple',[[784,0,.2],[988,.1,.2],[1175,.2,.32]]],
+ alert:['Alert',[[880,0,.12,'square',0,.07],[880,.2,.12,'square',0,.07],[1175,.4,.2,'square',0,.07]]],soft:['Soft',[[440,0,.6,'sine',0,.18],[554,.18,.6,'sine',0,.14]]]};
+const idb=()=>new Promise((ok,no)=>{const r=indexedDB.open('hearth-local',1);r.onupgradeneeded=()=>r.result.createObjectStore('tones');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+const idbGet=async k=>{try{const d=await idb();return await new Promise(ok=>{const q=d.transaction('tones').objectStore('tones').get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>ok(null)})}catch(e){return null}};
+const idbSet=async(k,v)=>{try{const d=await idb();return await new Promise(ok=>{const t=d.transaction('tones','readwrite');if(v===null)t.objectStore('tones').delete(k);else t.objectStore('tones').put(v,k);t.oncomplete=()=>ok(true);t.onerror=()=>ok(false)})}catch(e){return false}};
+let customBuf=null;
+async function loadCustom(){try{const rec=await idbGet('custom');if(rec&&ac)customBuf=await ac.decodeAudioData(rec.data.slice(0))}catch(e){customBuf=null}}
+async function playTone(id,vol){unlock();if(!ac)return;vol=vol==null?S.vol:vol;
+ try{if(id==='custom'){if(!customBuf)await loadCustom();if(!customBuf)return;const s=ac.createBufferSource(),g=ac.createGain();s.buffer=customBuf;g.gain.value=vol;s.connect(g);g.connect(ac.destination);s.start();return}
+  const now=ac.currentTime;(TONES[id]||TONES.chime)[1].forEach(([f,s,d,ty,f2,g])=>{const o=ac.createOscillator(),gn=ac.createGain(),a=now+s;o.type=ty||'sine';o.frequency.setValueAtTime(f,a);if(f2)o.frequency.exponentialRampToValueAtTime(f2,a+d);
+   gn.gain.setValueAtTime(0,a);gn.gain.linearRampToValueAtTime((g||.25)*vol,a+.02);gn.gain.exponentialRampToValueAtTime(.001,a+d);o.connect(gn);gn.connect(ac.destination);o.start(a);o.stop(a+d+.05)})}catch(e){}}
+function ping(){if(muted||!ac)return;playTone(S.tone)}
+
+/* ---- modal ---- */
+let mClose=null,backTimer=0;
+function modal(html){const d=$('#dlg'),prev=document.activeElement;if(mClose)mClose(true);
+ d.innerHTML=`<div class="card" role="dialog" aria-modal="true">${html}</div>`;d.classList.add('o');
+ /* a sheet closed a moment ago still owns the top history entry: reuse it instead of racing history.back() */
+ if(backTimer&&history.state&&history.state.k==='modal'){history.replaceState({k:'modal'},'')}else history.pushState({k:'modal'},'');
+ clearTimeout(backTimer);backTimer=0;
+ let done=false;
+ const close=fromPop=>{if(done)return;done=true;if(mClose===close)mClose=null;d.classList.remove('o');d.innerHTML='';document.removeEventListener('keydown',k);if(prev&&prev.focus)prev.focus();
+  if(!fromPop&&history.state&&history.state.k==='modal'){clearTimeout(backTimer);backTimer=setTimeout(()=>{backTimer=0;if(!mClose&&history.state&&history.state.k==='modal')history.back()},0)}};
+ const k=e=>{if(e.key==='Escape')close(false)};document.addEventListener('keydown',k);
+ d.onclick=e=>{if(e.target===d)close(false)};mClose=close;const f=$('input',d);if(f)f.focus();return{el:d,close:()=>close(false)}}
+
+if(typeof firebase==='undefined'){view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Can't load</h1><p>The Firebase scripts did not load. Open the published site in a normal browser with an internet connection, not a file preview.</p></main>`)}
+else if(CFG.apiKey.startsWith('YOUR')){view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Setup needed</h1><p>Hearth needs your Firebase project. Open index.html, paste your web app config into <b>CFG</b>, publish firestore.rules, and enable Email/Password sign-in. Steps are in NOTES.md.</p></main>`)}
+else{
+firebase.initializeApp(CFG);
+const auth=firebase.auth(),db=firebase.firestore(),FV=firebase.firestore.FieldValue;
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+let me=null,chats=[],cur=null,unList=null,unMsg=null,unChat=null,typeT=0,typeTimer=0;
+const myName=()=>auth.currentUser.displayName||auth.currentUser.email;
+
+/* ---- auth ---- */
+function authView(mode='in',err=''){const up=mode==='up';
+ view(`<main class="auth"><div class="logo">${ic('flame')}</div><h1>Hearth</h1>
+ <div class="seg"><button data-m="in" class="${up?'':'on'}">Sign in</button><button data-m="up" class="${up?'on':''}">Create account</button></div>
+ <form id="af" style="display:flex;flex-direction:column;gap:14px">
+ ${up?'<label><span>Name</span><input id="nm" autocomplete="name" required maxlength="120"></label>':''}
+ <label><span>Email</span><input id="em" type="email" autocomplete="email" required></label>
+ <label><span>Password</span><div class="pw"><input id="pw" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="6" required><button type="button" id="eye" class="ib" aria-label="Show password" aria-pressed="false">${ic('eye')}</button></div></label>
+ <p class="err" role="alert">${esc(err)}</p><button class="pri" type="submit">${up?'Create account':'Sign in'}</button></form></main>`);
+ document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>authView(b.dataset.m));
+ $('#eye').onclick=()=>{const p=$('#pw'),s=p.type==='password',b=$('#eye');p.type=s?'text':'password';b.innerHTML=ic(s?'eyeoff':'eye');b.setAttribute('aria-label',s?'Hide password':'Show password');b.setAttribute('aria-pressed',String(s))};
+ $('#af').onsubmit=async e=>{e.preventDefault();const em=$('#em').value.trim(),pw=$('#pw').value;
+  try{if(up){const n=clip($('#nm').value.trim()),c=await auth.createUserWithEmailAndPassword(em,pw);
+    await c.user.updateProfile({displayName:n});
+    await db.collection('users').doc(c.user.uid).set({name:n,nameLower:n.normalize('NFKC').toLowerCase(),email:em});
+    listenChats();listView()}
+   else await auth.signInWithEmailAndPassword(em,pw)}
+  catch(x){authView(mode,x.code==='auth/invalid-credential'?'Wrong email or password.':x.code==='auth/email-already-in-use'?'That email already has an account.':x.message)}}}
+
+auth.onAuthStateChanged(u=>{me=u;unList&&unList();unList=null;
+ if(u){listenChats();listView()}else{chats=[];cur=null;authView()}});
+
+/* ---- chat list ---- */
+const cname=c=>c.isGroup?c.title:c.members.length===1?'Saved messages':(c.names[c.members.find(x=>x!==me.uid)]||'Chat');
+const dlvSent={};
+function markDelivered(fromCache){if(fromCache)return;chats.forEach(c=>{if(!c.lastFrom||c.lastFrom===me.uid||!c.lastAt||!c.lastAt.toMillis)return;
+ const last=c.lastAt.toMillis(),d=(c.delivered||{})[me.uid];if((d&&d.toMillis&&d.toMillis()>=last)||dlvSent[c.id]>=last)return;dlvSent[c.id]=last;
+ db.collection('chats').doc(c.id).update({['delivered.'+me.uid]:FV.serverTimestamp()}).catch(()=>{})})}
+let prevUn={},primed=false;
+function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0)&&!pf(c,'mute')&&!pf(c,'arch'))hit=c;prevUn[c.id]=u});
+ if(hit){ping();if(S.toast&&(!cur||cur.id!==hit.id))toast('New message from '+cname(hit))}if(!fromCache)primed=true}
+function listenChats(){unList&&unList();prevUn={};primed=false;birthdayToday();
+ unList=db.collection('chats').where('members','array-contains',me.uid).onSnapshot(s=>{
+  chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);markDelivered(s.metadata.fromCache);loadPhotos();paintList()},
+  ()=>toast('Could not load chats. Check rules and connection.'))}
+function listView(){leaveChat();
+ view(`<header class="bar"><button id="hb" aria-label="Back to chats" hidden>${ic('back')}</button><h2 id="ttl">Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><nav class="tabs" aria-label="Sections">${[['chats','chat','Chats'],['updates','updates','Updates'],['bdays','gift','Birthdays'],['profile','user','Profile']].map(([k,i,t])=>`<button data-t="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</nav><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.t));$('#hb').onclick=()=>{if(sub)history.back();else goTab('chats')};showTab(tab)}
+let lf='all';
+const pf=(c,k)=>(c[k]||{})[me.uid];
+const vis=c=>{const u=(c.unread||{})[me.uid]||0;if(lf==='arch')return pf(c,'arch');if(pf(c,'arch'))return false;return lf==='unread'?u>0:lf==='groups'?c.isGroup:true};
+const setP=(c,k,v)=>db.collection('chats').doc(c.id).update({[k+'.'+me.uid]:v}).catch(()=>toast('Could not update that chat.'));
+const prefActs=c=>[[pf(c,'pin')?'Unpin chat':'Pin chat',()=>setP(c,'pin',!pf(c,'pin'))],[pf(c,'mute')?'Unmute chat':'Mute chat',()=>setP(c,'mute',!pf(c,'mute'))],[pf(c,'arch')?'Move out of archive':'Archive chat',()=>setP(c,'arch',!pf(c,'arch'))]];
+function sheet(acts,pre=''){const mo=modal(pre+'<div class="sheet">'+acts.map((a,i)=>`<button data-i="${i}">${esc(a[0])}</button>`).join('')+'</div>');
+ mo.el.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{mo.close();acts[b.dataset.i][1]()});return mo}
+function confirmD(t,body,label,fn){const m=modal(`<h3>${esc(t)}</h3><p>${esc(body)}</p><div class="acts"><button class="ghost" id="cn">Keep it</button><button class="pri" id="cy">${esc(label)}</button></div>`);$('#cn').onclick=m.close;$('#cy').onclick=()=>{m.close();fn()}}
+const chatMenu=id=>{const c=chats.find(x=>x.id===id);if(c)sheet(prefActs(c))};
+function holdBind(el){let t,fired=false,x0=0,y0=0;
+ el.addEventListener('pointerdown',e=>{const r=e.target.closest('.row');if(!r)return;fired=false;x0=e.clientX;y0=e.clientY;t=setTimeout(()=>{fired=true;chatMenu(r.dataset.id)},500)});
+ el.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-x0,e.clientY-y0)>10)clearTimeout(t)});
+ ['pointerup','pointercancel','pointerleave'].forEach(k=>el.addEventListener(k,()=>clearTimeout(t)));
+ el.addEventListener('click',e=>{if(fired){e.stopPropagation();e.preventDefault();fired=false}},true);
+ el.addEventListener('contextmenu',e=>{const r=e.target.closest('.row');if(r){e.preventDefault();chatMenu(r.dataset.id)}})}
+function paintChips(){const el=$('#ch');if(!el)return;
+ el.innerHTML=[['all','All'],['unread','Unread'],['groups','Groups'],['arch','Archived']].map(([k,t])=>`<button class="chip${lf===k?' on':''}" data-f="${k}" aria-pressed="${lf===k}">${t}</button>`).join('');
+ el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{lf=b.dataset.f;paintChips();paintList()})}
+function paintList(){const el=$('#cl');if(!el||tab!=='chats')return;const L=chats.filter(vis).sort((a,b)=>!!pf(b,'pin')-!!pf(a,'pin'));
+ if(!L.length){el.innerHTML=`<p class="empty">${chats.length?'Nothing in this view.':'No chats yet. Tap the + button to start one.'}</p>`;return}
+ el.innerHTML=L.map(c=>{const n=cname(c),u=(c.unread||{})[me.uid]||0;
+  return`<button class="row${u?' un':''}" data-id="${c.id}">${av(n,0,c.isGroup?null:c.members.find(x=>x!==me.uid))}<span class="mid"><b>${esc(n)}</b><small>${c.lastFrom===me.uid&&c.lastText?'You: ':''}${esc(c.lastText||'No messages yet')}</small></span><span class="rt"><small>${ftime(c.lastAt)}</small><span style="display:flex;gap:4px;align-items:center">${pf(c,'pin')?ic('pin'):''}${pf(c,'mute')?ic('belloff'):''}${u?`<i class="bd">${u}</i>`:''}</span></span></button>`}).join('');
+ el.querySelectorAll('.row').forEach(b=>b.onclick=()=>openChat(chats.find(c=>c.id===b.dataset.id)))}
+
+/* ---- tabs, profile, birthdays, updates ---- */
+let tab='chats',sub=null,unUpd=null;
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const mdOf=d=>(d.getMonth()+1)*100+d.getDate();
+const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h ago'};
+const live=u=>(u.updates||[]).filter(x=>Date.now()-x.at<864e5);
+function goTab(t){const st=history.state||{},d=st.k==='list'&&st.tab&&st.tab!=='chats'?(st.d||1):0;
+ if(t==='chats'){if(d>0)history.go(-d);else{sub=null;showTab('chats')}return}
+ if(t===tab&&!sub)return;sub=null;
+ if(d===0)history.pushState({k:'list',tab:t,d:1},'');else history.replaceState({k:'list',tab:t,d:d},'');
+ showTab(t)}
+function showTab(t){tab=t;if(unUpd){unUpd();unUpd=null}
+ $('#ttl').textContent={chats:'Hearth',updates:'Updates',bdays:'Birthdays',profile:'Profile'}[t];
+ document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
+ $('#ch').hidden=t!=='chats';$('#fab').hidden=t!=='chats';$('#hb').hidden=t==='chats';
+ if(t==='chats'){paintChips();paintList()}else if(t==='updates')renderUpdates();else if(t==='bdays')renderBdays();else renderSettings()}
+async function loadPhotos(){const ids=[...new Set(chats.filter(c=>!c.isGroup).map(c=>c.members.find(x=>x!==me.uid)).filter(x=>x&&!(x in UP)))];
+ for(let i=0;i<ids.length;i+=10){const ch=ids.slice(i,i+10);ch.forEach(x=>UP[x]={});
+  try{const s=await db.collection('users').where(firebase.firestore.FieldPath.documentId(),'in',ch).get();s.docs.forEach(d=>UP[d.id]={photo:d.data().photo||null})}catch(e){ch.forEach(x=>delete UP[x])}}
+ if(ids.length)paintList()}
+async function openDirect(u,pre,after){try{const members=[me.uid,u.id].sort(),ref=db.collection('chats').doc(members.join('_'));let s=await ref.get();
+ if(!s.exists){await ref.set({members,names:{[me.uid]:myName(),[u.id]:u.name},isGroup:false,title:'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});s=await ref.get()}
+ openChat({id:ref.id,...s.data()});if(pre){const t=$('#tx');if(t){t.value=pre;t.focus()}}if(after)after()}catch(e){toast('Could not open that chat.')}}
+function thumb(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const s=Math.min(i.width,i.height),c=document.createElement('canvas');c.width=c.height=160;c.getContext('2d').drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,160,160);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.7))};i.onerror=no;i.src=u})}
+/* profile */
+async function renderProfileEdit(){const el=$('#cl');$('#ttl').textContent='Edit profile';el.innerHTML='<p class="empty">Loading…</p>';let d={};
+ try{d=(await db.collection('users').doc(me.uid).get()).data()||{}}catch(e){}
+ if(tab!=='profile')return;let ph=d.photo||null,share=!!d.bmd;UP[me.uid]={photo:ph};
+ el.innerHTML=`<div class="prof"><div id="pa">${av(myName(),88,me.uid)}</div><button class="ghost" id="pp">Change photo</button><input id="pf" type="file" accept="image/*" hidden><h3 style="text-align:center">${esc(myName())}</h3>
+ <label><span>About</span><input id="ab" maxlength="120"></label>
+ <div id="bd-edit"><label><span>Birthday month</span><select id="bm"><option value="0">Not set</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select></label>
+ <label><span>Birthday day</span><select id="bdy">${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}</select></label>
+ <div class="swr"><span>Share my birthday with other Hearth users</span><button type="button" class="sw" id="bs" role="switch" aria-checked="${share}" aria-label="Share my birthday"></button></div></div><div class="swr" id="bd-sum" hidden><span id="bd-txt"></span><button type="button" class="ghost" id="bd-ed">Edit birthday</button></div>
+ <button class="pri" id="sp">Save profile</button></div>`;
+ $('#ab').value=d.about||'';$('#bm').value=String(d.bmd?Math.floor(d.bmd/100):0);$('#bdy').value=String(d.bmd?d.bmd%100:1);
+ $('#pp').onclick=()=>$('#pf').click();
+ $('#pf').onchange=e=>{const f=e.target.files[0];if(f)thumb(f).then(u=>{ph=u;UP[me.uid]={photo:u};$('#pa').innerHTML=av(myName(),88,me.uid)}).catch(()=>toast('That image could not be read.'))};
+ $('#bs').onclick=()=>{share=!share;$('#bs').setAttribute('aria-checked',String(share))};
+ const lockBd=on=>{$('#bd-edit').hidden=on;$('#bd-sum').hidden=!on;if(on){const m=+$('#bm').value,dd=+$('#bdy').value;$('#bd-txt').textContent=share&&m?dd+' '+MON[m-1]+' · shared with Hearth users':'Birthday not shared'}};
+ $('#bd-ed').onclick=()=>{lockBd(false);$('#bm').focus()};lockBd(!!d.bmd);
+ $('#sp').onclick=async()=>{const m=+$('#bm').value,dd=+$('#bdy').value,up={about:$('#ab').value.trim(),photo:ph};
+  if(share&&!m)return toast('Choose your birthday month first, or switch sharing off.');
+  if(m&&dd>new Date(2024,m,0).getDate())return toast('That day does not exist in that month.');
+  up.bmd=share?m*100+dd:FV.delete();
+  try{await db.collection('users').doc(me.uid).set(up,{merge:true});toast('Profile saved');lockBd(true)}catch(e){toast('Could not save your profile.')}}}
+/* birthdays */
+async function bdQuery(a,b){const s=await db.collection('users').where('bmd','>=',a).where('bmd','<=',b).get();return s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}))}
+async function renderBdays(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';const now=new Date(),a=mdOf(now),b=mdOf(new Date(now.getTime()+30*864e5));let L=[];
+ try{L=b>=a?await bdQuery(a,b):[...await bdQuery(a,1231),...await bdQuery(101,b)]}catch(e){if(tab==='bdays')el.innerHTML='<p class="empty">Could not load birthdays. Check your connection.</p>';return}
+ if(tab!=='bdays')return;const t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ L.forEach(u=>{UP[u.id]=u;let t=new Date(now.getFullYear(),Math.floor(u.bmd/100)-1,u.bmd%100);if(t<t0)t=new Date(now.getFullYear()+1,t.getMonth(),t.getDate());u.when=t;u.days=Math.round((t-t0)/864e5)});
+ L.sort((x,y)=>x.days-y.days);
+ const sec=(t,f)=>{const r=L.filter(f);return r.length?`<h4 class="sh">${t}</h4>`+r.map(u=>`<div class="row" style="cursor:default">${av(u.name,0,u.id)}<span class="mid"><b>${esc(u.name)}</b><small>${u.when.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})}</small></span><button class="pri" data-g="${u.id}" style="min-height:40px">Send greeting</button></div>`).join(''):''};
+ el.innerHTML=(sec('Today',u=>u.days===0)+sec('Next 7 days',u=>u.days>0&&u.days<=7)+sec('Next 30 days',u=>u.days>7))||'<p class="empty">No shared birthdays in the next 30 days. You can share yours in Profile.</p>';
+ el.querySelectorAll('[data-g]').forEach(bt=>bt.onclick=()=>{const u=L.find(x=>x.id===bt.dataset.g);openDirect(u,'Happy birthday, '+u.name+'!')})}
+async function birthdayToday(){const k='hearth-bd-'+new Date().toDateString();
+ try{if(!S.bday||localStorage.getItem(k))return;const s=await db.collection('users').where('bmd','==',mdOf(new Date())).get(),n=s.docs.filter(d=>d.id!==me.uid).map(d=>d.data().name);
+  if(n.length){toast('Birthday today: '+n.slice(0,3).join(', ')+(n.length>3?' and more':''));localStorage.setItem(k,'1')}}catch(e){}}
+/* updates (24 hours, stored on the poster's own profile) */
+function renderUpdates(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';
+ unUpd=db.collection('users').where('updAt','>',Date.now()-864e5).orderBy('updAt','desc').limit(50).onSnapshot(s=>{
+  const box=$('#cl');if(tab!=='updates'||!box)return;const L=s.docs.map(d=>({id:d.id,...d.data()})).filter(u=>live(u).length);L.forEach(u=>UP[u.id]=u);
+  const mine=L.find(u=>u.id===me.uid),others=L.filter(u=>u.id!==me.uid);
+  const row=(u,self)=>`<button class="row" data-u="${u.id}"><span class="ring">${av(self?'You':u.name,0,u.id)}</span><span class="mid"><b>${esc(self?'My updates':u.name)}</b><small>${live(u).length} update${live(u).length>1?'s':''} · ${ago(u.updAt)}</small></span></button>`;
+  box.innerHTML=`<div class="prof" style="padding-bottom:4px"><button class="pri" id="np">Post an update</button></div>`+(mine?row(mine,true):'')+(others.length?'<h4 class="sh">Recent updates</h4>'+others.map(u=>row(u)).join(''):'')+(!mine&&!others.length?'<p class="empty">No updates in the last 24 hours.</p>':'');
+  $('#np').onclick=postUpdate;box.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>viewUpdates(L.find(u=>u.id===b.dataset.u)))},
+  ()=>{if(tab==='updates'&&$('#cl'))$('#cl').innerHTML='<p class="empty">Could not load updates. Check your connection.</p>'})}
+function postUpdate(){let img=null;
+ const x=modal(`<h3>New update</h3><label><span>What is new?</span><input id="ut" maxlength="200" autocomplete="off"></label><input id="ui" type="file" accept="image/*" hidden><div class="acts" style="justify-content:space-between"><button class="ghost" id="up">Add photo</button><span id="un" style="color:var(--mu)"></span></div><div class="acts"><button class="ghost" id="uc">Cancel</button><button class="pri" id="ug">Post for 24 hours</button></div>`);
+ $('#up').onclick=()=>$('#ui').click();$('#uc').onclick=x.close;
+ $('#ui').onchange=e=>{const f=e.target.files[0];if(f)shrink(f,600,.5).then(d=>{img=d;$('#un').textContent='Photo added'}).catch(()=>toast('That image could not be read.'))};
+ $('#ug').onclick=async()=>{const t=$('#ut').value.trim();if(!t&&!img)return toast('Write something or add a photo.');
+  try{const ref=db.collection('users').doc(me.uid),d=(await ref.get()).data()||{},arr=live(d).concat([{id:String(Date.now()),t,img,at:Date.now()}]).slice(-6);
+   if(JSON.stringify(arr).length>900000)return toast('Too many photos in your updates. Delete an older one first.');
+   await ref.set({updates:arr,updAt:Date.now()},{merge:true});x.close();toast('Update posted')}catch(e){toast('Could not post your update.')}}}
+function viewUpdates(u){if(!u)return;const self=u.id===me.uid,L=live(u).slice().reverse();
+ const x=modal(`<h3>${esc(self?'My updates':u.name)}</h3><div class="res">${L.map(v=>`<div class="m" style="max-width:100%;margin-bottom:8px">${v.img?`<img src="${v.img}" alt="Update photo">`:''}${esc(v.t||'')}<span class="mt">${ago(v.at)}</span><div style="margin-top:6px">${self?`<button class="ghost" data-d="${v.id}">Delete</button>`:`<button class="ghost" data-r="${v.id}">Reply</button>`}</div></div>`).join('')}</div><div class="acts"><button class="pri" id="uv">Close</button></div>`);
+ $('#uv').onclick=x.close;
+ x.el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const v=L.find(y=>y.id===b.dataset.r);x.close();openDirect(u,'',()=>{replyTo={id:v.id,name:u.name,text:v.t||'Photo update'};paintReply();$('#tx').focus()})});
+ x.el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{x.close();confirmD('Delete this update?','It disappears for everyone straight away.','Delete update',async()=>{
+  try{const arr=live(u).filter(y=>y.id!==b.dataset.d);await db.collection('users').doc(me.uid).set({updates:arr,updAt:arr.length?arr[arr.length-1].at:0},{merge:true})}catch(e){toast('Could not delete the update.')}})})}
+
+/* ---- settings screens ---- */
+const TILE={notif:['bell','#d9661f'],chat:['chat','#2a8f8f'],data:['db','#4a5fc1'],power:['battery','#b7791f'],about:['info','#5b6b7a']};
+const setRow=(k,t,s)=>`<button class="row" data-s="${k}"><span class="tile" style="background:${TILE[k][1]}">${ic(TILE[k][0])}</span><span class="mid"><b>${t}</b><small>${s}</small></span>${ic('chev')}</button>`;
+const swBind=(id,get,set)=>{const b=$(id);b.onclick=()=>{const v=!get();set(v);b.setAttribute('aria-checked',String(v))}};
+const swHtml=(id,label,on)=>`<div class="swr"><span>${label}</span><button type="button" class="sw" id="${id}" role="switch" aria-checked="${on}" aria-label="${label}"></button></div>`;
+const segHtml=(id,items,cur)=>`<div class="seg" id="${id}">${items.map(([k,t])=>`<button data-v="${k}" class="${cur===k?'on':''}">${t}</button>`).join('')}</div>`;
+function openSub(s){history.pushState({k:'list',tab:'profile',sub:s,d:2},'');sub=s;renderSettings()}
+async function renderSettings(){const el=$('#cl');if(tab!=='profile')return;
+ if(sub==='edit')return renderProfileEdit();if(sub==='notif')return subNotif();if(sub==='chat')return subChat();if(sub==='data')return subData();if(sub==='power')return subPower();if(sub==='about')return subAbout();
+ $('#ttl').textContent='Profile';el.innerHTML='<p class="empty">Loading…</p>';let d={};
+ try{d=(await db.collection('users').doc(me.uid).get()).data()||{}}catch(e){}
+ if(tab!=='profile'||sub)return;UP[me.uid]={photo:d.photo||null};
+ el.innerHTML=`<div class="card2"><button class="row" data-s="edit">${av(myName(),56,me.uid)}<span class="mid"><b>${esc(myName())}</b><small>${esc(d.about||'Edit your profile')}</small></span>${ic('chev')}</button></div>
+ <div class="card2">${setRow('notif','Notifications','Tones and volume')}${setRow('chat','Chat settings','Wallpaper, text size, theme')}${setRow('data','Data and storage','Saved files, photo quality')}${setRow('power','Power saving','Fewer animations')}</div>
+ <div class="card2">${setRow('about','About Hearth','Version '+APP_VER+', updates')}</div>`;
+ el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>openSub(b.dataset.s))}
+function subNotif(){$('#ttl').textContent='Notifications';const el=$('#cl');
+ const list=Object.entries(TONES).map(([k,v])=>[k,v[0]]).concat(S.customName?[['custom',S.customName+' (yours)']]:[]);
+ el.innerHTML=`<div class="pagepad">${swHtml('n1','Message sounds',!muted)}${swHtml('n2','Banner for new messages inside the app',S.toast)}${swHtml('n3','Birthday reminder',S.bday)}
+  <div class="lbl">Volume</div><input id="nv" type="range" min="10" max="100" value="${Math.round(S.vol*100)}" aria-label="Volume"></div>
+  <h4 class="sh">Tone</h4><div class="card2" role="radiogroup" aria-label="Notification tone">${list.map(([k,n])=>`<button class="row" role="radio" aria-checked="${S.tone===k}" data-t="${k}"><span class="mid"><b>${esc(n)}</b></span>${S.tone===k?'<span style="color:var(--ac);display:flex">'+ic('check')+'</span>':''}</button>`).join('')}</div>
+  <div class="pagepad"><button class="pri" id="nu">Choose a sound from your device</button><input id="nf" type="file" accept="audio/*" hidden>${S.customName?'<button class="ghost" id="nr">Remove my sound</button>':''}</div>`;
+ swBind('#n1',()=>!muted,v=>{muted=!v;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}});
+ swBind('#n2',()=>S.toast,v=>{S.toast=v;saveS()});swBind('#n3',()=>S.bday,v=>{S.bday=v;saveS()});
+ $('#nv').oninput=e=>{S.vol=e.target.value/100;saveS()};$('#nv').onchange=()=>playTone(S.tone);
+ el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tone=b.dataset.t;saveS();playTone(S.tone);subNotif()});
+ $('#nu').onclick=()=>$('#nf').click();
+ $('#nf').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>1.5e6)return toast('That file is too large. Choose one under 1.5 MB.');
+  unlock();let data;try{data=await f.arrayBuffer();const b=await ac.decodeAudioData(data.slice(0));if(b.duration>10)return toast('That sound is longer than 10 seconds.');customBuf=b}catch(x){return toast('This phone cannot play that file.')}
+  await idbSet('custom',{data,name:f.name});S.customName=f.name.replace(/\.[^.]+$/,'').slice(0,30)||'My sound';S.tone='custom';saveS();playTone('custom');subNotif()};
+ if($('#nr'))$('#nr').onclick=async()=>{await idbSet('custom',null);customBuf=null;S.customName='';if(S.tone==='custom')S.tone='chime';saveS();subNotif()}}
+function subChat(){$('#ttl').textContent='Chat settings';const el=$('#cl');
+ el.innerHTML=`<div class="pagepad"><div class="lbl">Theme</div>${segHtml('th3',[['light','Light'],['dark','Dark'],['system','System']],themePref())}
+  <div class="lbl">Wallpaper</div><div class="wps" role="radiogroup" aria-label="Chat wallpaper">${[['dots','Dots'],['grid','Grid'],['lines','Lines'],['plain','Plain']].map(([k,t])=>`<button class="wp ${k}" role="radio" aria-checked="${S.wp===k}" data-w="${k}" aria-label="${t}"></button>`).join('')}</div>
+  <div class="lbl">Text size</div><input id="ts" type="range" min="85" max="130" step="5" value="${S.size}" aria-label="Text size">
+  ${swHtml('ce','Enter key sends the message',S.enter)}</div>`;
+ el.querySelectorAll('#th3 button').forEach(b=>b.onclick=()=>{setTheme(b.dataset.v);subChat()});
+ el.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{S.wp=b.dataset.w;saveS();applyS();subChat()});
+ $('#ts').oninput=e=>{S.size=+e.target.value;saveS();applyS()};swBind('#ce',()=>S.enter,v=>{S.enter=v;saveS()})}
+async function subData(){$('#ttl').textContent='Data and storage';const el=$('#cl');
+ el.innerHTML=`<div class="card2"><div class="row" style="cursor:default"><span class="mid"><b>Saved app files</b><small id="dsz">Calculating…</small></span></div></div>
+  <div class="pagepad"><div class="lbl">Photo upload quality</div>${segHtml('pq',[['low','Small'],['std','Standard'],['high','High']],S.photo)}<button class="ghost" id="cc">Clear saved app files</button></div>`;
+ el.querySelectorAll('#pq button').forEach(b=>b.onclick=()=>{S.photo=b.dataset.v;saveS();subData()});
+ $('#cc').onclick=()=>confirmD('Clear saved app files?','Hearth will download them again the next time you are online.','Clear files',async()=>{try{for(const n of await caches.keys())if(n.startsWith('hearth-'))await caches.delete(n);toast('Saved app files cleared');subData()}catch(e){toast('Could not clear the files.')}});
+ let n=0;try{for(const name of await caches.keys())if(name.startsWith('hearth-')){const c=await caches.open(name);for(const r of await c.keys()){const resp=await c.match(r);if(resp)n+=(await resp.blob()).size}}
+  if($('#dsz'))$('#dsz').textContent=(n/1048576).toFixed(1)+' MB'}catch(e){if($('#dsz'))$('#dsz').textContent='Not available'}}
+function subPower(){$('#ttl').textContent='Power saving';const el=$('#cl');
+ el.innerHTML=`<div class="pagepad">${swHtml('pw','Power saving mode',S.save)}<div class="lbl">Turns off animations, the chat wallpaper and typing updates to save battery and data.</div></div>`;
+ swBind('#pw',()=>S.save,v=>{S.save=v;saveS();applyS()})}
+async function updateApp(){toast('Updating…');try{const r=await navigator.serviceWorker.getRegistration();if(r)await r.unregister();const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('hearth-')).map(k=>caches.delete(k)))}catch(e){}location.reload()}
+function subAbout(){$('#ttl').textContent='About Hearth';const el=$('#cl'),sw=navigator.serviceWorker&&navigator.serviceWorker.controller?'active':'not active',inst=matchMedia('(display-mode: standalone)').matches?'installed app':'browser tab';
+ const info=['Hearth version '+APP_VER,'Service worker: '+sw,'Opened as: '+inst,'Connection: '+(navigator.onLine?'online':'offline'),'Screen: '+innerWidth+' x '+innerHeight,'Browser: '+navigator.userAgent];
+ el.innerHTML=`<div class="card2">${info.slice(0,4).map(t=>`<div class="row" style="cursor:default;min-height:52px"><span class="mid"><b>${esc(t)}</b></span></div>`).join('')}</div><div class="pagepad"><button class="pri" id="ua">Update app</button><button class="ghost" id="cd">Copy details</button></div>`;
+ $('#ua').onclick=updateApp;$('#cd').onclick=()=>navigator.clipboard.writeText(info.join('\n')).then(()=>toast('Details copied'),()=>toast('Could not copy.'))}
+
+/* ---- new chat / group ---- */
+function newChat(){const sel=new Map();let found=[],dt;
+ const m=modal(`<h3>New chat</h3><label><span>Find people by name</span><input id="q" autocomplete="off"></label><button class="row" id="sv" style="min-height:56px;padding:8px 4px">${av('Saved messages')}<span class="mid"><b>Saved messages</b><small>Notes and files for yourself</small></span></button><div id="res" class="res"></div>
+ <label id="gt" hidden><span>Group name</span><input id="gn" maxlength="40"></label>
+ <div class="acts"><button class="ghost" id="cx">Close</button><button class="pri" id="go" disabled>Start chat</button></div>`);
+ const paint=()=>{$('#res').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}">${av(u.name,0,u.id)}<span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
+  $('#res').querySelectorAll('.row').forEach(b=>b.onclick=()=>{const u=found.find(x=>x.id===b.dataset.id);sel.has(u.id)?sel.delete(u.id):sel.set(u.id,u);paint()});
+  const g=sel.size>1;$('#gt').hidden=!g;$('#go').disabled=!sel.size;$('#go').textContent=g?'Create group':'Start chat'};
+ paint();$('#cx').onclick=m.close;
+ $('#sv').onclick=async()=>{try{const ref=db.collection('chats').doc(me.uid+'_self');let s=await ref.get();
+  if(!s.exists){await ref.set({members:[me.uid],names:{[me.uid]:'Saved messages'},isGroup:false,title:'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});s=await ref.get()}
+  m.close();openChat({id:ref.id,...s.data()})}catch(x){toast('Could not open Saved messages.')}};
+ $('#q').oninput=e=>{clearTimeout(dt);const q=e.target.value.trim().normalize('NFKC').toLowerCase();
+  dt=setTimeout(async()=>{if(!q){found=[...sel.values()];return paint()}
+   try{const s=await db.collection('users').where('nameLower','>=',q).where('nameLower','<=',q+'\uf8ff').limit(15).get();
+    found=s.docs.filter(d=>d.id!==me.uid).map(d=>({id:d.id,...d.data()}));found.forEach(u=>UP[u.id]=u);sel.forEach(u=>{if(!found.some(f=>f.id===u.id))found.push(u)});paint()}
+   catch(x){toast('Search failed. Are you online?')}},300)};
+ $('#go').onclick=async()=>{const us=[...sel.values()],members=[me.uid,...us.map(u=>u.id)],names={[me.uid]:myName()};us.forEach(u=>names[u.id]=u.name);
+  try{let ref,doc;
+   if(us.length===1){ref=db.collection('chats').doc([...members].sort().join('_'));doc=await ref.get()}
+   else{const t=$('#gn').value.trim();if(!t)return toast('Give the group a name first.');ref=db.collection('chats').doc()}
+   if(!doc||!doc.exists)await ref.set({members,names,isGroup:us.length>1,title:us.length>1?$('#gn').value.trim():'',lastText:'',lastAt:FV.serverTimestamp(),unread:{},typing:{}});
+   const snap=await ref.get();m.close();openChat({id:ref.id,...snap.data()})}
+  catch(x){toast('Could not create the chat.')}}}
+
+/* ---- chat screen ---- */
+function leaveChat(){stopRec(false);stopVN();replyTo=null;flt={q:'',star:false};lastSnap=null;unMsg&&unMsg();unChat&&unChat();unMsg=unChat=null;cur=null;clearTimeout(typeTimer)}
+function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}flt={q:'',star:false};replyTo=null;lastSnap=null;openUn=(c.unread||{})[me.uid]||0;if(push)history.pushState({k:'chat',id:c.id},'');
+ view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40,c.isGroup?null:c.members.find(x=>x!==me.uid))}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header>
+ <div id="sr" class="rpl" hidden><label style="flex:1"><span>Search this chat</span><input id="sq" autocomplete="off"></label><button class="ghost" id="sx">Done</button></div>
+ <div id="ms" class="msgs"></div><div id="rp" class="rpl" hidden></div>
+ <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><textarea id="tx" rows="1" aria-label="Message" enterkeyhint="${S.enter?'send':'enter'}"></textarea><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
+ const cr=db.collection('chats').doc(c.id);
+ $('#bk').onclick=()=>history.back();
+ unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};const dk=JSON.stringify(Object.entries(cur.delivered||{}).map(([k,v])=>[k,v&&v.seconds]));if(dk!==lastDk){lastDk=dk;if(lastSnap)paintMsgs(lastSnap)}
+  const who=cur.members.filter(u=>u!==me.uid&&Date.now()-(t[u]||0)<5000);
+  const sub=$('#sub');if(sub)sub.textContent=who.length?'typing…':(cur.isGroup?cur.members.length+' members':'');
+  clearTimeout(typeTimer);if(who.length)typeTimer=setTimeout(()=>{const s2=$('#sub');s2&&(s2.textContent=cur.isGroup?cur.members.length+' members':'')},5200)});
+ unMsg=cr.collection('messages').orderBy('at').limitToLast(100).onSnapshot({includeMetadataChanges:true},s=>{paintMsgs(s);markRead(s,cr)});
+ const send=()=>{const v=$('#tx').value.trim();if(!v)return;$('#tx').value='';grow();post(v,null)};
+ $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||(S.enter&&!e.shiftKey))){e.preventDefault();send()}};
+ $('#tx').oninput=()=>{grow();if(!S.save&&Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
+ $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=e=>{if(e.target.closest('.pl'))vnClick(e)};msgGestures($('#ms'));$('#mo').onclick=chatOptions;$('#sq').oninput=e=>{flt.q=e.target.value;if(lastSnap)paintMsgs(lastSnap)};$('#sx').onclick=()=>{flt.q='';$('#sq').value='';$('#sr').hidden=true;if(lastSnap)paintMsgs(lastSnap)};paintReply();
+ $('#fi').onchange=e=>{const f=e.target.files[0];if(f)shrink(f).then(d=>post('',d)).catch(()=>toast('That image could not be read.'))}}
+function shrink(f,mx=PH[S.photo][0],q=PH[S.photo][1]){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,mx/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};i.onerror=no;i.src=u})}
+function postTo(c,text,img,aud,fwd,rep){const cr=db.collection('chats').doc(c.id),b=db.batch();
+ b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid]});
+ const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
+ b.update(cr,up);b.commit().catch(()=>toast('Could not send that message.'))}
+function post(text,img,aud){postTo(cur,text,img,aud,false,replyTo);replyTo=null;paintReply()}
+let lastDk='',MS={},lastSnap=null,flt={q:'',star:false},openUn=0,replyTo=null;
+const dKey=t=>(t&&t.toDate?t.toDate():new Date()).toDateString();
+function dLbl(t){const d=t&&t.toDate?t.toDate():new Date(),n=new Date();return d.toDateString()===n.toDateString()?'Today':d.toDateString()===new Date(n-864e5).toDateString()?'Yesterday':d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})}
+function paintMsgs(s){const el=$('#ms');if(!el)return;lastSnap=s;const near=el.scrollHeight-el.scrollTop-el.clientHeight<120;
+ let docs=s.docs.filter(d=>!(d.data().hiddenFor||[]).includes(me.uid));MS={};docs.forEach(d=>MS[d.id]=d.data());
+ const q=flt.q.trim().toLowerCase();if(q)docs=docs.filter(d=>(d.data().text||'').toLowerCase().includes(q));
+ if(flt.star)docs=docs.filter(d=>(d.data().starredBy||[]).includes(me.uid));
+ let ud=-1;if(openUn&&!q&&!flt.star){let n=0;for(let i=docs.length-1;i>=0;i--)if(docs[i].data().from!==me.uid&&++n===openUn){ud=i;break}}
+ let last='';
+ el.innerHTML=docs.map((d,i)=>{const m=d.data(),mine=m.from===me.uid,pend=d.metadata.hasPendingWrites,seen=mine&&(o=>o.length>0&&o.every(u=>(m.readBy||[]).includes(u)))(cur.members.filter(u=>u!==me.uid));
+  const k=dKey(m.at),sep=k!==last?`<div class="day">${dLbl(m.at)}</div>`:'';last=k;
+  const oth=cur.members.filter(u=>u!==me.uid),ms=m.at&&m.at.toMillis?m.at.toMillis():0,dlv=mine&&!pend&&ms>0&&oth.length>0&&oth.every(u=>{const t=(cur.delivered||{})[u];return t&&t.toMillis&&t.toMillis()>=ms}),tk=mine&&!m.deleted?`<span class="tk ${seen?'rd':''}${pend?' pd':''}" title="${pend?'Sending':seen?'Read':dlv?'Delivered':'Sent'}">${ic('check')}${seen||dlv?ic('check'):''}</span>`:'';
+  const meta=`<span class="mt">${(m.starredBy||[]).includes(me.uid)?ic('star'):''}${m.edited&&!m.deleted?'edited ':''}${ftime(m.at)}${tk}</span>`,div=i===ud?'<div class="ud">Unread messages</div>':'';
+  if(m.deleted)return sep+div+`<div class="m dl ${mine?'me':''}" data-id="${d.id}">This message was deleted${meta}</div>`;
+  const rx={};Object.values(m.reactions||{}).forEach(e=>rx[e]=(rx[e]||0)+1);
+  return sep+div+`<div class="m ${mine?'me':''}" data-id="${d.id}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.fwd?'<span class="w" style="color:var(--mu)">Forwarded</span>':''}${m.reply?`<div class="q"><b>${esc(m.reply.name)}</b><span>${esc(m.reply.text)}</span></div>`:''}${m.audio?vn(d.id,m.audio):''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${fmt(m.text||'')}${Object.keys(rx).length?`<span class="rx">${Object.entries(rx).map(([e,n])=>`<i>${e}${n>1?' '+n:''}</i>`).join('')}</span>`:''}${meta}</div>`}).join('')||'<p class="empty">No messages to show.</p>';
+ if(near||s.metadata.fromCache===false&&!el.dataset.k){el.scrollTop=el.scrollHeight;el.dataset.k=1}syncVN()}
+function msgGestures(el){let t,sx=0,sy=0,m=null,swiping=false;
+ const reset=()=>{clearTimeout(t);if(m){const x=m;x.style.transition='transform .15s';x.style.transform='';x.classList.remove('swp','rdy');setTimeout(()=>{x.style.transition=''},200)}m=null;swiping=false};
+ el.addEventListener('pointerdown',e=>{const b=e.target.closest('.m');if(!b||e.target.closest('.pl'))return;m=b;sx=e.clientX;sy=e.clientY;swiping=false;
+  t=setTimeout(()=>{if(m&&!swiping){const id=m.dataset.id;if(navigator.vibrate)navigator.vibrate(15);reset();if(id)msgMenu(id)}},450)});
+ el.addEventListener('pointermove',e=>{if(!m)return;const dx=e.clientX-sx,dy=e.clientY-sy;
+  if(!swiping){if(Math.abs(dy)>10||dx<-10){clearTimeout(t);return}if(dx>10&&dx>Math.abs(dy)*1.5){swiping=true;clearTimeout(t);m.classList.add('swp')}else return}
+  const d=Math.max(0,Math.min(dx,90));m.style.transform='translateX('+d+'px)';m.classList.toggle('rdy',d>=64)});
+ el.addEventListener('pointerup',e=>{if(m&&swiping&&e.clientX-sx>=64&&m.dataset.id){const id=m.dataset.id;if(navigator.vibrate)navigator.vibrate(10);reset();setReply(id);return}reset()});
+ el.addEventListener('pointercancel',reset);
+ el.addEventListener('contextmenu',e=>{const b=e.target.closest('.m');if(b&&b.dataset.id){e.preventDefault();reset();msgMenu(b.dataset.id)}})}
+function paintReply(){const el=$('#rp');if(!el)return;el.hidden=!replyTo;if(!replyTo){el.innerHTML='';return}
+ el.innerHTML=`<div class="q"><b>Replying to ${esc(replyTo.name)}</b><span>${esc(replyTo.text)}</span></div><button class="ib" id="rpx" aria-label="Cancel reply">${ic('x')}</button>`;$('#rpx').onclick=()=>{replyTo=null;paintReply()}}
+function setReply(id){const m=MS[id];if(!m||m.deleted)return;replyTo={id,name:cur.names[m.from]||'Member',text:m.text||(m.audio?'Voice note':'Photo')};paintReply();$('#tx').focus()}
+const upd=(ref,data)=>ref.update(data).catch(e=>toast(e&&e.code==='permission-denied'?'The database refused this change. Publish the latest firestore.rules in Firebase.':'Could not save that change.'));
+function msgMenu(id){const m=MS[id];if(!m)return;const mine=m.from===me.uid,cr=db.collection('chats').doc(cur.id).collection('messages').doc(id),del=!!m.deleted,st=(m.starredBy||[]).includes(me.uid),acts=[];
+ if(!del){acts.push(['Reply',()=>setReply(id)]);
+  if(m.text)acts.push(['Copy text',()=>navigator.clipboard.writeText(m.text).then(()=>toast('Copied'),()=>toast('Could not copy.'))]);
+  acts.push(['Forward',()=>fwdPick(m)]);
+  acts.push([st?'Remove star':'Star message',()=>upd(cr,{starredBy:st?FV.arrayRemove(me.uid):FV.arrayUnion(me.uid)})]);
+  if(mine&&m.text&&!m.audio&&!m.img)acts.push(['Edit message',()=>editMsg(cr,m)]);
+  if(mine&&cur.isGroup)acts.push(['Who has read this',()=>{const r=cur.members.filter(u=>u!==me.uid&&(m.readBy||[]).includes(u)).map(u=>cur.names[u]||'Member');const x=modal(`<h3>Read by</h3><p>${r.length?esc(r.join(', ')):'Nobody yet.'}</p><div class="acts"><button class="pri" id="rd">Back to chat</button></div>`);$('#rd').onclick=x.close}])}
+ acts.push(['Delete for me',()=>upd(cr,{hiddenFor:FV.arrayUnion(me.uid)})]);
+ if(mine&&!del)acts.push(['Delete for everyone',()=>confirmD('Delete for everyone?','This removes the message for all members and cannot be undone.','Delete for everyone',()=>upd(cr,{deleted:true,text:'',img:null,audio:null}))]);
+ const mo=sheet(acts,del?'':'<div class="emo">'+['👍','❤️','😂','😮','😢','🙏'].map(e=>`<button data-e="${e}" aria-label="React ${e}">${e}</button>`).join('')+'</div>');
+ mo.el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const same=(m.reactions||{})[me.uid]===b.dataset.e;upd(cr,{['reactions.'+me.uid]:same?FV.delete():b.dataset.e});mo.close()})}
+function editMsg(cr,m){const x=modal(`<h3>Edit message</h3><label><span>Message</span><input id="ed"></label><div class="acts"><button class="ghost" id="ec">Keep original</button><button class="pri" id="es">Save change</button></div>`);
+ $('#ed').value=m.text;$('#ec').onclick=x.close;$('#es').onclick=()=>{const v=$('#ed').value.trim();if(!v)return toast('A message cannot be empty.');x.close();if(v!==m.text)upd(cr,{text:v,edited:true})}}
+function fwdPick(m){const x=modal(`<h3>Forward to</h3><div class="res">${chats.map(c=>`<button class="row" data-id="${c.id}">${av(cname(c))}<span class="mid"><b>${esc(cname(c))}</b></span></button>`).join('')}</div><div class="acts"><button class="ghost" id="fc">Cancel</button></div>`);
+ $('#fc').onclick=x.close;x.el.querySelectorAll('.row').forEach(b=>b.onclick=()=>{const c=chats.find(y=>y.id===b.dataset.id);x.close();postTo(c,m.text||'',m.img||null,m.audio||null,true,null);toast('Forwarded to '+cname(c))})}
+function chatOptions(){sheet([['Search in this chat',()=>{$('#sr').hidden=false;$('#sq').focus()}],[flt.star?'Show all messages':'Show starred messages',()=>{flt.star=!flt.star;if(lastSnap)paintMsgs(lastSnap);toast(flt.star?'Showing starred messages':'Showing all messages')}],...prefActs(cur)])}
+function markRead(s,cr){if(s.metadata.hasPendingWrites)return;const un=s.docs.filter(d=>d.data().from!==me.uid&&!(d.data().readBy||[]).includes(me.uid));
+ if(un.length){const b=db.batch();un.forEach(d=>b.update(d.ref,{readBy:FV.arrayUnion(me.uid)}));b.commit().catch(()=>{})}
+ if(((cur.unread||{})[me.uid]||0)>0)cr.update({['unread.'+me.uid]:0}).catch(()=>{})}
+
+/* ---- voice notes ---- */
+const vnData={},vnDur={};let rec=null,vnA=null,vnId=null;
+const fmtS=s=>Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');
+function vn(id,a){vnData[id]=a.d;vnDur[id]=a.s;return`<div class="vn"><button class="ib pl" data-v="${id}" aria-label="Play voice note">${ic('play')}</button><span class="pb"><i></i></span><small>${fmtS(a.s)}</small></div>`}
+function info(t){const m=modal(`<h3>Voice notes</h3><p>${esc(t)}</p><div class="acts"><button class="pri" id="ix">Back to chat</button></div>`);$('#ix').onclick=m.close}
+function paintComp(){const c=$('.comp'),b=$('#rb');if(c)c.classList.toggle('rec',!!rec);if(b)b.hidden=!rec}
+async function startRec(){if(rec)return;
+ if(!navigator.mediaDevices||!window.MediaRecorder)return info('This browser cannot record audio. Try Chrome on Android or Safari on iPhone.');
+ try{const st=await navigator.mediaDevices.getUserMedia({audio:true});
+  const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm'].find(x=>MediaRecorder.isTypeSupported(x));
+  const r=new MediaRecorder(st,mime?{mimeType:mime,audioBitsPerSecond:24000}:{}),x={r,st,ch:[],t0:Date.now(),send:false};
+  r.ondataavailable=e=>{if(e.data.size)x.ch.push(e.data)};
+  r.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(x.iv);rec=null;paintComp();if(x.send)finishRec(x,r.mimeType)};
+  rec=x;r.start();x.iv=setInterval(()=>{const s=(Date.now()-x.t0)/1000,t=$('#rt');if(t)t.textContent=fmtS(s);if(s>=60)stopRec(true)},250);paintComp()}
+ catch(e){info('Microphone access is blocked. Allow the microphone for this site in your browser settings, then try again.')}}
+function stopRec(send){if(!rec||rec.r.state==='inactive')return;rec.send=send;rec.r.stop()}
+function finishRec(x,mime){const s=Math.round((Date.now()-x.t0)/1000);if(s<1)return toast('That voice note was too short.');
+ const fr=new FileReader();fr.onload=()=>{if(fr.result.length>900000)return toast('That voice note is too large to send.');post('',null,{d:fr.result,s})};
+ fr.readAsDataURL(new Blob(x.ch,{type:mime||'audio/webm'}))}
+function vnClick(e){const b=e.target.closest('.pl');if(!b)return;const id=b.dataset.v;
+ if(vnId===id&&vnA){if(vnA.paused)vnA.play();else vnA.pause();return}
+ stopVN();vnId=id;vnA=new Audio(vnData[id]);
+ vnA.ontimeupdate=syncVN;vnA.onpause=syncVN;vnA.onplay=syncVN;vnA.onended=stopVN;
+ vnA.play().catch(()=>{toast('Could not play that voice note.');stopVN()})}
+function stopVN(){if(vnA){vnA.onpause=vnA.onplay=vnA.ontimeupdate=vnA.onended=null;vnA.pause()}vnA=null;vnId=null;syncVN()}
+function syncVN(){document.querySelectorAll('.pl').forEach(b=>{const id=b.dataset.v,on=id===vnId&&vnA,pl=on&&!vnA.paused;
+ b.innerHTML=ic(pl?'pause':'play');b.setAttribute('aria-label',pl?'Pause voice note':'Play voice note');
+ const i=b.parentNode.querySelector('.pb i');if(i)i.style.width=on?Math.min(100,vnA.currentTime/(vnDur[id]||1)*100)+'%':'0'})}
+
+/* ---- navigation ---- */
+history.replaceState({k:'list',tab:'chats'},'');
+addEventListener('popstate',e=>{if(!me)return;const st=e.state||{k:'list',tab:'chats'};
+ if(st.k==='modal'){if(!mClose)history.back();return}
+ if(mClose)mClose(true);
+ if(st.k==='chat'){if(!cur||cur.id!==st.id){const c=chats.find(x=>x.id===st.id);if(c)openChat(c,false);else{tab='chats';listView()}}return}
+ const t=st.tab||'chats',s2=st.sub||null;if(cur||!$('#cl')||tab!==t||s2!==sub){tab=t;sub=s2;listView()}});
+}
+function showUpdate(){if($('#upd'))return;const b=document.createElement('div');b.id='upd';b.className='updbar';b.setAttribute('role','status');
+ b.innerHTML='<span>A new version of Hearth is ready.</span><button class="pri" id="ur">Reload now</button>';document.body.appendChild(b);$('#ur').onclick=()=>location.reload()}
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
+ let had=!!navigator.serviceWorker.controller,rl=false;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!rl){const tx=document.getElementById('tx');if(document.querySelector('.comp.rec')||(tx&&tx.value.trim()))showUpdate();else{rl=true;location.reload()}}had=true});
+ navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='hearth-update-ready')showUpdate()})}
+</script></body></html>
