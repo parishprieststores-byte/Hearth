@@ -91,6 +91,20 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 .bar [hidden]{display:none}.tk.pd{opacity:.5}
 [hidden]{display:none!important}
 #bd-ed{white-space:nowrap;flex:none}
+body{font-size:1rem}
+[data-wp=plain] .msgs{background-image:none}
+[data-wp=grid] .msgs{background-image:linear-gradient(var(--bd) 1px,transparent 1px),linear-gradient(90deg,var(--bd) 1px,transparent 1px);background-size:26px 26px}
+[data-wp=lines] .msgs{background-image:repeating-linear-gradient(135deg,var(--bd) 0 1px,transparent 1px 14px)}
+[data-save="1"] *{transition:none!important;animation:none!important}[data-save="1"] .msgs{background-image:none!important}
+.lbl{font-size:.85rem;font-weight:600;color:var(--mu)}
+.card2{background:var(--sf);border:1px solid var(--bd);border-radius:18px;margin:12px 16px;overflow:hidden}.card2 .row{border-bottom:1px solid var(--bd)}.card2 .row:last-child{border-bottom:0}.card2 .row>.ic{color:var(--mu)}
+.tile{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;flex:none}.tile .ic{width:22px;height:22px}
+.pagepad{padding:16px;display:flex;flex-direction:column;gap:14px}
+.wps{display:flex;gap:10px}.wp{flex:1;height:64px;border-radius:12px;border:2px solid var(--bd);background-color:var(--bg)}.wp[aria-checked=true]{border-color:var(--ac)}
+.wp.dots{background-image:radial-gradient(var(--mu) 1px,transparent 1px);background-size:12px 12px}
+.wp.grid{background-image:linear-gradient(var(--bd) 1px,transparent 1px),linear-gradient(90deg,var(--bd) 1px,transparent 1px);background-size:14px 14px}
+.wp.lines{background-image:repeating-linear-gradient(135deg,var(--bd) 0 1px,transparent 1px 9px)}
+input[type=range]{width:100%;accent-color:var(--ac)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
@@ -117,6 +131,10 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 <symbol id="i-updates" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></symbol>
 <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+<symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2M6 10v4"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
 </defs></svg>
 <div id="app"></div><div id="dlg"></div><div id="toast" role="status"></div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -126,7 +144,7 @@ body{font-family:"Nunito","Segoe UI",system-ui,"Noto Sans","Noto Color Emoji","A
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
 const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
 
-const APP_VER='12';
+const APP_VER='13';
 const $=(s,e=document)=>e.querySelector(s);
 const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -158,8 +176,30 @@ mq.addEventListener('change',applyTheme);applyTheme();
 let ac=null,muted=false;try{muted=localStorage.getItem('hearth-mute')==='1'}catch(e){}
 function unlock(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch(e){}}
 ['touchstart','click','keydown'].forEach(t=>addEventListener(t,unlock,{passive:true}));
-function ping(){if(muted||!ac)return;try{const t=ac.currentTime;[880,1175].forEach((f,i)=>{const s=t+i*.12,o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.25,s+.02);g.gain.exponentialRampToValueAtTime(.001,s+.3);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+.35)})}catch(e){}}
 function toggleMute(){muted=!muted;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}const b=$('#mu');if(b){b.innerHTML=ic(muted?'belloff':'bell');b.setAttribute('aria-label',muted?'Unmute sounds':'Mute sounds')}toast(muted?'Sounds muted':'Sounds on');if(!muted)ping()}
+
+/* ---- settings and tones (saved on this device only) ---- */
+const SK='hearth-settings';let S={tone:'chime',vol:.8,wp:'dots',size:100,enter:false,save:false,photo:'std',toast:true,bday:true,customName:''};
+try{Object.assign(S,JSON.parse(localStorage.getItem(SK)||'{}'))}catch(e){}
+const saveS=()=>{try{localStorage.setItem(SK,JSON.stringify(S))}catch(e){}};
+function applyS(){const r=document.documentElement;r.dataset.wp=S.wp;r.dataset.save=S.save?'1':'';r.style.fontSize=S.size+'%'}
+applyS();
+const PH={low:[600,.5],std:[800,.6],high:[1200,.7]};
+function setTheme(v){try{if(v==='system')localStorage.removeItem('hearth-theme');else localStorage.setItem('hearth-theme',v)}catch(e){}applyTheme()}
+const themePref=()=>{try{return localStorage.getItem('hearth-theme')||'system'}catch(e){return'system'}};
+const TONES={chime:['Chime',[[880,0,.25],[1175,.12,.35]]],bell:['Bell',[[1318,0,.7],[2637,0,.4,'sine',0,.08]]],drop:['Drop',[[900,0,.28,'sine',420]]],pop:['Pop',[[500,0,.09,'triangle',900,.3]]],
+ marimba:['Marimba',[[523,0,.3,'triangle'],[659,.14,.3,'triangle'],[784,.28,.45,'triangle']]],ripple:['Ripple',[[784,0,.2],[988,.1,.2],[1175,.2,.32]]],
+ alert:['Alert',[[880,0,.12,'square',0,.07],[880,.2,.12,'square',0,.07],[1175,.4,.2,'square',0,.07]]],soft:['Soft',[[440,0,.6,'sine',0,.18],[554,.18,.6,'sine',0,.14]]]};
+const idb=()=>new Promise((ok,no)=>{const r=indexedDB.open('hearth-local',1);r.onupgradeneeded=()=>r.result.createObjectStore('tones');r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+const idbGet=async k=>{try{const d=await idb();return await new Promise(ok=>{const q=d.transaction('tones').objectStore('tones').get(k);q.onsuccess=()=>ok(q.result);q.onerror=()=>ok(null)})}catch(e){return null}};
+const idbSet=async(k,v)=>{try{const d=await idb();return await new Promise(ok=>{const t=d.transaction('tones','readwrite');if(v===null)t.objectStore('tones').delete(k);else t.objectStore('tones').put(v,k);t.oncomplete=()=>ok(true);t.onerror=()=>ok(false)})}catch(e){return false}};
+let customBuf=null;
+async function loadCustom(){try{const rec=await idbGet('custom');if(rec&&ac)customBuf=await ac.decodeAudioData(rec.data.slice(0))}catch(e){customBuf=null}}
+async function playTone(id,vol){unlock();if(!ac)return;vol=vol==null?S.vol:vol;
+ try{if(id==='custom'){if(!customBuf)await loadCustom();if(!customBuf)return;const s=ac.createBufferSource(),g=ac.createGain();s.buffer=customBuf;g.gain.value=vol;s.connect(g);g.connect(ac.destination);s.start();return}
+  const now=ac.currentTime;(TONES[id]||TONES.chime)[1].forEach(([f,s,d,ty,f2,g])=>{const o=ac.createOscillator(),gn=ac.createGain(),a=now+s;o.type=ty||'sine';o.frequency.setValueAtTime(f,a);if(f2)o.frequency.exponentialRampToValueAtTime(f2,a+d);
+   gn.gain.setValueAtTime(0,a);gn.gain.linearRampToValueAtTime((g||.25)*vol,a+.02);gn.gain.exponentialRampToValueAtTime(.001,a+d);o.connect(gn);gn.connect(ac.destination);o.start(a);o.stop(a+d+.05)})}catch(e){}}
+function ping(){if(muted||!ac)return;playTone(S.tone)}
 
 /* ---- modal ---- */
 let mClose=null,backTimer=0;
@@ -213,14 +253,14 @@ function markDelivered(fromCache){if(fromCache)return;chats.forEach(c=>{if(!c.la
  db.collection('chats').doc(c.id).update({['delivered.'+me.uid]:FV.serverTimestamp()}).catch(()=>{})})}
 let prevUn={},primed=false;
 function notifyNew(fromCache){let hit=null;chats.forEach(c=>{const u=(c.unread||{})[me.uid]||0;if(primed&&u>(prevUn[c.id]||0)&&!pf(c,'mute')&&!pf(c,'arch'))hit=c;prevUn[c.id]=u});
- if(hit){ping();if(!cur||cur.id!==hit.id)toast('New message from '+cname(hit))}if(!fromCache)primed=true}
+ if(hit){ping();if(S.toast&&(!cur||cur.id!==hit.id))toast('New message from '+cname(hit))}if(!fromCache)primed=true}
 function listenChats(){unList&&unList();prevUn={};primed=false;birthdayToday();
  unList=db.collection('chats').where('members','array-contains',me.uid).onSnapshot(s=>{
   chats=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||9e9)-((a.lastAt&&a.lastAt.seconds)||9e9));notifyNew(s.metadata.fromCache);markDelivered(s.metadata.fromCache);loadPhotos();paintList()},
   ()=>toast('Could not load chats. Check rules and connection.'))}
 function listView(){leaveChat();
  view(`<header class="bar"><button id="hb" aria-label="Back to chats" hidden>${ic('back')}</button><h2 id="ttl">Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><nav class="tabs" aria-label="Sections">${[['chats','chat','Chats'],['updates','updates','Updates'],['bdays','gift','Birthdays'],['profile','user','Profile']].map(([k,i,t])=>`<button data-t="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</nav><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
- $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.t));$('#hb').onclick=()=>goTab('chats');showTab(tab)}
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.t));$('#hb').onclick=()=>{if(sub)history.back();else goTab('chats')};showTab(tab)}
 let lf='all';
 const pf=(c,k)=>(c[k]||{})[me.uid];
 const vis=c=>{const u=(c.unread||{})[me.uid]||0;if(lf==='arch')return pf(c,'arch');if(pf(c,'arch'))return false;return lf==='unread'?u>0:lf==='groups'?c.isGroup:true};
@@ -246,19 +286,21 @@ function paintList(){const el=$('#cl');if(!el||tab!=='chats')return;const L=chat
  el.querySelectorAll('.row').forEach(b=>b.onclick=()=>openChat(chats.find(c=>c.id===b.dataset.id)))}
 
 /* ---- tabs, profile, birthdays, updates ---- */
-let tab='chats',unUpd=null;
+let tab='chats',sub=null,unUpd=null;
 const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const mdOf=d=>(d.getMonth()+1)*100+d.getDate();
 const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h ago'};
 const live=u=>(u.updates||[]).filter(x=>Date.now()-x.at<864e5);
-function goTab(t){if(t===tab)return;const st=history.state||{},inTab=st.k==='list'&&st.tab&&st.tab!=='chats';
- if(t==='chats'){if(inTab)history.back();else showTab('chats');return}
- if(inTab)history.replaceState({k:'list',tab:t},'');else history.pushState({k:'list',tab:t},'');showTab(t)}
+function goTab(t){const st=history.state||{},d=st.k==='list'&&st.tab&&st.tab!=='chats'?(st.d||1):0;
+ if(t==='chats'){if(d>0)history.go(-d);else{sub=null;showTab('chats')}return}
+ if(t===tab&&!sub)return;sub=null;
+ if(d===0)history.pushState({k:'list',tab:t,d:1},'');else history.replaceState({k:'list',tab:t,d:d},'');
+ showTab(t)}
 function showTab(t){tab=t;if(unUpd){unUpd();unUpd=null}
  $('#ttl').textContent={chats:'Hearth',updates:'Updates',bdays:'Birthdays',profile:'Profile'}[t];
  document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.t===t;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
  $('#ch').hidden=t!=='chats';$('#fab').hidden=t!=='chats';$('#hb').hidden=t==='chats';
- if(t==='chats'){paintChips();paintList()}else if(t==='updates')renderUpdates();else if(t==='bdays')renderBdays();else renderProfile()}
+ if(t==='chats'){paintChips();paintList()}else if(t==='updates')renderUpdates();else if(t==='bdays')renderBdays();else renderSettings()}
 async function loadPhotos(){const ids=[...new Set(chats.filter(c=>!c.isGroup).map(c=>c.members.find(x=>x!==me.uid)).filter(x=>x&&!(x in UP)))];
  for(let i=0;i<ids.length;i+=10){const ch=ids.slice(i,i+10);ch.forEach(x=>UP[x]={});
   try{const s=await db.collection('users').where(firebase.firestore.FieldPath.documentId(),'in',ch).get();s.docs.forEach(d=>UP[d.id]={photo:d.data().photo||null})}catch(e){ch.forEach(x=>delete UP[x])}}
@@ -268,7 +310,7 @@ async function openDirect(u,pre,after){try{const members=[me.uid,u.id].sort(),re
  openChat({id:ref.id,...s.data()});if(pre){const t=$('#tx');if(t){t.value=pre;t.focus()}}if(after)after()}catch(e){toast('Could not open that chat.')}}
 function thumb(f){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const s=Math.min(i.width,i.height),c=document.createElement('canvas');c.width=c.height=160;c.getContext('2d').drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,160,160);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.7))};i.onerror=no;i.src=u})}
 /* profile */
-async function renderProfile(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';let d={};
+async function renderProfileEdit(){const el=$('#cl');$('#ttl').textContent='Edit profile';el.innerHTML='<p class="empty">Loading…</p>';let d={};
  try{d=(await db.collection('users').doc(me.uid).get()).data()||{}}catch(e){}
  if(tab!=='profile')return;let ph=d.photo||null,share=!!d.bmd;UP[me.uid]={photo:ph};
  el.innerHTML=`<div class="prof"><div id="pa">${av(myName(),88,me.uid)}</div><button class="ghost" id="pp">Change photo</button><input id="pf" type="file" accept="image/*" hidden><h3 style="text-align:center">${esc(myName())}</h3>
@@ -276,14 +318,13 @@ async function renderProfile(){const el=$('#cl');el.innerHTML='<p class="empty">
  <div id="bd-edit"><label><span>Birthday month</span><select id="bm"><option value="0">Not set</option>${MON.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('')}</select></label>
  <label><span>Birthday day</span><select id="bdy">${Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join('')}</select></label>
  <div class="swr"><span>Share my birthday with other Hearth users</span><button type="button" class="sw" id="bs" role="switch" aria-checked="${share}" aria-label="Share my birthday"></button></div></div><div class="swr" id="bd-sum" hidden><span id="bd-txt"></span><button type="button" class="ghost" id="bd-ed">Edit birthday</button></div>
- <button class="pri" id="sp">Save profile</button><button class="ghost" id="ua">Update app</button><p style="text-align:center;color:var(--mu);font-size:.85rem">Version ${APP_VER}</p></div>`;
+ <button class="pri" id="sp">Save profile</button></div>`;
  $('#ab').value=d.about||'';$('#bm').value=String(d.bmd?Math.floor(d.bmd/100):0);$('#bdy').value=String(d.bmd?d.bmd%100:1);
  $('#pp').onclick=()=>$('#pf').click();
  $('#pf').onchange=e=>{const f=e.target.files[0];if(f)thumb(f).then(u=>{ph=u;UP[me.uid]={photo:u};$('#pa').innerHTML=av(myName(),88,me.uid)}).catch(()=>toast('That image could not be read.'))};
  $('#bs').onclick=()=>{share=!share;$('#bs').setAttribute('aria-checked',String(share))};
  const lockBd=on=>{$('#bd-edit').hidden=on;$('#bd-sum').hidden=!on;if(on){const m=+$('#bm').value,dd=+$('#bdy').value;$('#bd-txt').textContent=share&&m?dd+' '+MON[m-1]+' · shared with Hearth users':'Birthday not shared'}};
  $('#bd-ed').onclick=()=>{lockBd(false);$('#bm').focus()};lockBd(!!d.bmd);
- $('#ua').onclick=async()=>{toast('Updating…');try{const r=await navigator.serviceWorker.getRegistration();if(r)await r.unregister();const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('hearth-')).map(k=>caches.delete(k)))}catch(e){}location.reload()};
  $('#sp').onclick=async()=>{const m=+$('#bm').value,dd=+$('#bdy').value,up={about:$('#ab').value.trim(),photo:ph};
   if(share&&!m)return toast('Choose your birthday month first, or switch sharing off.');
   if(m&&dd>new Date(2024,m,0).getDate())return toast('That day does not exist in that month.');
@@ -300,7 +341,7 @@ async function renderBdays(){const el=$('#cl');el.innerHTML='<p class="empty">Lo
  el.innerHTML=(sec('Today',u=>u.days===0)+sec('Next 7 days',u=>u.days>0&&u.days<=7)+sec('Next 30 days',u=>u.days>7))||'<p class="empty">No shared birthdays in the next 30 days. You can share yours in Profile.</p>';
  el.querySelectorAll('[data-g]').forEach(bt=>bt.onclick=()=>{const u=L.find(x=>x.id===bt.dataset.g);openDirect(u,'Happy birthday, '+u.name+'!')})}
 async function birthdayToday(){const k='hearth-bd-'+new Date().toDateString();
- try{if(localStorage.getItem(k))return;const s=await db.collection('users').where('bmd','==',mdOf(new Date())).get(),n=s.docs.filter(d=>d.id!==me.uid).map(d=>d.data().name);
+ try{if(!S.bday||localStorage.getItem(k))return;const s=await db.collection('users').where('bmd','==',mdOf(new Date())).get(),n=s.docs.filter(d=>d.id!==me.uid).map(d=>d.data().name);
   if(n.length){toast('Birthday today: '+n.slice(0,3).join(', ')+(n.length>3?' and more':''));localStorage.setItem(k,'1')}}catch(e){}}
 /* updates (24 hours, stored on the poster's own profile) */
 function renderUpdates(){const el=$('#cl');el.innerHTML='<p class="empty">Loading…</p>';
@@ -325,6 +366,61 @@ function viewUpdates(u){if(!u)return;const self=u.id===me.uid,L=live(u).slice().
  x.el.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const v=L.find(y=>y.id===b.dataset.r);x.close();openDirect(u,'',()=>{replyTo={id:v.id,name:u.name,text:v.t||'Photo update'};paintReply();$('#tx').focus()})});
  x.el.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{x.close();confirmD('Delete this update?','It disappears for everyone straight away.','Delete update',async()=>{
   try{const arr=live(u).filter(y=>y.id!==b.dataset.d);await db.collection('users').doc(me.uid).set({updates:arr,updAt:arr.length?arr[arr.length-1].at:0},{merge:true})}catch(e){toast('Could not delete the update.')}})})}
+
+/* ---- settings screens ---- */
+const TILE={notif:['bell','#d9661f'],chat:['chat','#2a8f8f'],data:['db','#4a5fc1'],power:['battery','#b7791f'],about:['info','#5b6b7a']};
+const setRow=(k,t,s)=>`<button class="row" data-s="${k}"><span class="tile" style="background:${TILE[k][1]}">${ic(TILE[k][0])}</span><span class="mid"><b>${t}</b><small>${s}</small></span>${ic('chev')}</button>`;
+const swBind=(id,get,set)=>{const b=$(id);b.onclick=()=>{const v=!get();set(v);b.setAttribute('aria-checked',String(v))}};
+const swHtml=(id,label,on)=>`<div class="swr"><span>${label}</span><button type="button" class="sw" id="${id}" role="switch" aria-checked="${on}" aria-label="${label}"></button></div>`;
+const segHtml=(id,items,cur)=>`<div class="seg" id="${id}">${items.map(([k,t])=>`<button data-v="${k}" class="${cur===k?'on':''}">${t}</button>`).join('')}</div>`;
+function openSub(s){history.pushState({k:'list',tab:'profile',sub:s,d:2},'');sub=s;renderSettings()}
+async function renderSettings(){const el=$('#cl');if(tab!=='profile')return;
+ if(sub==='edit')return renderProfileEdit();if(sub==='notif')return subNotif();if(sub==='chat')return subChat();if(sub==='data')return subData();if(sub==='power')return subPower();if(sub==='about')return subAbout();
+ $('#ttl').textContent='Profile';el.innerHTML='<p class="empty">Loading…</p>';let d={};
+ try{d=(await db.collection('users').doc(me.uid).get()).data()||{}}catch(e){}
+ if(tab!=='profile'||sub)return;UP[me.uid]={photo:d.photo||null};
+ el.innerHTML=`<div class="card2"><button class="row" data-s="edit">${av(myName(),56,me.uid)}<span class="mid"><b>${esc(myName())}</b><small>${esc(d.about||'Edit your profile')}</small></span>${ic('chev')}</button></div>
+ <div class="card2">${setRow('notif','Notifications','Tones and volume')}${setRow('chat','Chat settings','Wallpaper, text size, theme')}${setRow('data','Data and storage','Saved files, photo quality')}${setRow('power','Power saving','Fewer animations')}</div>
+ <div class="card2">${setRow('about','About Hearth','Version '+APP_VER+', updates')}</div>`;
+ el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>openSub(b.dataset.s))}
+function subNotif(){$('#ttl').textContent='Notifications';const el=$('#cl');
+ const list=Object.entries(TONES).map(([k,v])=>[k,v[0]]).concat(S.customName?[['custom',S.customName+' (yours)']]:[]);
+ el.innerHTML=`<div class="pagepad">${swHtml('n1','Message sounds',!muted)}${swHtml('n2','Banner for new messages inside the app',S.toast)}${swHtml('n3','Birthday reminder',S.bday)}
+  <div class="lbl">Volume</div><input id="nv" type="range" min="10" max="100" value="${Math.round(S.vol*100)}" aria-label="Volume"></div>
+  <h4 class="sh">Tone</h4><div class="card2" role="radiogroup" aria-label="Notification tone">${list.map(([k,n])=>`<button class="row" role="radio" aria-checked="${S.tone===k}" data-t="${k}"><span class="mid"><b>${esc(n)}</b></span>${S.tone===k?'<span style="color:var(--ac);display:flex">'+ic('check')+'</span>':''}</button>`).join('')}</div>
+  <div class="pagepad"><button class="pri" id="nu">Choose a sound from your device</button><input id="nf" type="file" accept="audio/*" hidden>${S.customName?'<button class="ghost" id="nr">Remove my sound</button>':''}</div>`;
+ swBind('#n1',()=>!muted,v=>{muted=!v;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}});
+ swBind('#n2',()=>S.toast,v=>{S.toast=v;saveS()});swBind('#n3',()=>S.bday,v=>{S.bday=v;saveS()});
+ $('#nv').oninput=e=>{S.vol=e.target.value/100;saveS()};$('#nv').onchange=()=>playTone(S.tone);
+ el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tone=b.dataset.t;saveS();playTone(S.tone);subNotif()});
+ $('#nu').onclick=()=>$('#nf').click();
+ $('#nf').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>1.5e6)return toast('That file is too large. Choose one under 1.5 MB.');
+  unlock();let data;try{data=await f.arrayBuffer();const b=await ac.decodeAudioData(data.slice(0));if(b.duration>10)return toast('That sound is longer than 10 seconds.');customBuf=b}catch(x){return toast('This phone cannot play that file.')}
+  await idbSet('custom',{data,name:f.name});S.customName=f.name.replace(/\.[^.]+$/,'').slice(0,30)||'My sound';S.tone='custom';saveS();playTone('custom');subNotif()};
+ if($('#nr'))$('#nr').onclick=async()=>{await idbSet('custom',null);customBuf=null;S.customName='';if(S.tone==='custom')S.tone='chime';saveS();subNotif()}}
+function subChat(){$('#ttl').textContent='Chat settings';const el=$('#cl');
+ el.innerHTML=`<div class="pagepad"><div class="lbl">Theme</div>${segHtml('th3',[['light','Light'],['dark','Dark'],['system','System']],themePref())}
+  <div class="lbl">Wallpaper</div><div class="wps" role="radiogroup" aria-label="Chat wallpaper">${[['dots','Dots'],['grid','Grid'],['lines','Lines'],['plain','Plain']].map(([k,t])=>`<button class="wp ${k}" role="radio" aria-checked="${S.wp===k}" data-w="${k}" aria-label="${t}"></button>`).join('')}</div>
+  <div class="lbl">Text size</div><input id="ts" type="range" min="85" max="130" step="5" value="${S.size}" aria-label="Text size">
+  ${swHtml('ce','Enter key sends the message',S.enter)}</div>`;
+ el.querySelectorAll('#th3 button').forEach(b=>b.onclick=()=>{setTheme(b.dataset.v);subChat()});
+ el.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{S.wp=b.dataset.w;saveS();applyS();subChat()});
+ $('#ts').oninput=e=>{S.size=+e.target.value;saveS();applyS()};swBind('#ce',()=>S.enter,v=>{S.enter=v;saveS()})}
+async function subData(){$('#ttl').textContent='Data and storage';const el=$('#cl');
+ el.innerHTML=`<div class="card2"><div class="row" style="cursor:default"><span class="mid"><b>Saved app files</b><small id="dsz">Calculating…</small></span></div></div>
+  <div class="pagepad"><div class="lbl">Photo upload quality</div>${segHtml('pq',[['low','Small'],['std','Standard'],['high','High']],S.photo)}<button class="ghost" id="cc">Clear saved app files</button></div>`;
+ el.querySelectorAll('#pq button').forEach(b=>b.onclick=()=>{S.photo=b.dataset.v;saveS();subData()});
+ $('#cc').onclick=()=>confirmD('Clear saved app files?','Hearth will download them again the next time you are online.','Clear files',async()=>{try{for(const n of await caches.keys())if(n.startsWith('hearth-'))await caches.delete(n);toast('Saved app files cleared');subData()}catch(e){toast('Could not clear the files.')}});
+ let n=0;try{for(const name of await caches.keys())if(name.startsWith('hearth-')){const c=await caches.open(name);for(const r of await c.keys()){const resp=await c.match(r);if(resp)n+=(await resp.blob()).size}}
+  if($('#dsz'))$('#dsz').textContent=(n/1048576).toFixed(1)+' MB'}catch(e){if($('#dsz'))$('#dsz').textContent='Not available'}}
+function subPower(){$('#ttl').textContent='Power saving';const el=$('#cl');
+ el.innerHTML=`<div class="pagepad">${swHtml('pw','Power saving mode',S.save)}<div class="lbl">Turns off animations, the chat wallpaper and typing updates to save battery and data.</div></div>`;
+ swBind('#pw',()=>S.save,v=>{S.save=v;saveS();applyS()})}
+async function updateApp(){toast('Updating…');try{const r=await navigator.serviceWorker.getRegistration();if(r)await r.unregister();const ks=await caches.keys();await Promise.all(ks.filter(k=>k.startsWith('hearth-')).map(k=>caches.delete(k)))}catch(e){}location.reload()}
+function subAbout(){$('#ttl').textContent='About Hearth';const el=$('#cl'),sw=navigator.serviceWorker&&navigator.serviceWorker.controller?'active':'not active',inst=matchMedia('(display-mode: standalone)').matches?'installed app':'browser tab';
+ const info=['Hearth version '+APP_VER,'Service worker: '+sw,'Opened as: '+inst,'Connection: '+(navigator.onLine?'online':'offline'),'Screen: '+innerWidth+' x '+innerHeight,'Browser: '+navigator.userAgent];
+ el.innerHTML=`<div class="card2">${info.slice(0,4).map(t=>`<div class="row" style="cursor:default;min-height:52px"><span class="mid"><b>${esc(t)}</b></span></div>`).join('')}</div><div class="pagepad"><button class="pri" id="ua">Update app</button><button class="ghost" id="cd">Copy details</button></div>`;
+ $('#ua').onclick=updateApp;$('#cd').onclick=()=>navigator.clipboard.writeText(info.join('\n')).then(()=>toast('Details copied'),()=>toast('Could not copy.'))}
 
 /* ---- new chat / group ---- */
 function newChat(){const sel=new Map();let found=[],dt;
@@ -357,7 +453,7 @@ function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}f
  view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40,c.isGroup?null:c.members.find(x=>x!==me.uid))}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header>
  <div id="sr" class="rpl" hidden><label style="flex:1"><span>Search this chat</span><input id="sq" autocomplete="off"></label><button class="ghost" id="sx">Done</button></div>
  <div id="ms" class="msgs"></div><div id="rp" class="rpl" hidden></div>
- <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><textarea id="tx" rows="1" aria-label="Message" enterkeyhint="enter"></textarea><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
+ <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><textarea id="tx" rows="1" aria-label="Message" enterkeyhint="${S.enter?'send':'enter'}"></textarea><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div>`);
  const cr=db.collection('chats').doc(c.id);
  $('#bk').onclick=()=>history.back();
  unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};const dk=JSON.stringify(Object.entries(cur.delivered||{}).map(([k,v])=>[k,v&&v.seconds]));if(dk!==lastDk){lastDk=dk;if(lastSnap)paintMsgs(lastSnap)}
@@ -366,11 +462,11 @@ function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}f
   clearTimeout(typeTimer);if(who.length)typeTimer=setTimeout(()=>{const s2=$('#sub');s2&&(s2.textContent=cur.isGroup?cur.members.length+' members':'')},5200)});
  unMsg=cr.collection('messages').orderBy('at').limitToLast(100).onSnapshot({includeMetadataChanges:true},s=>{paintMsgs(s);markRead(s,cr)});
  const send=()=>{const v=$('#tx').value.trim();if(!v)return;$('#tx').value='';grow();post(v,null)};
- $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();send()}};
- $('#tx').oninput=()=>{grow();if(Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
+ $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||(S.enter&&!e.shiftKey))){e.preventDefault();send()}};
+ $('#tx').oninput=()=>{grow();if(!S.save&&Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
  $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=e=>{if(e.target.closest('.pl'))vnClick(e)};msgGestures($('#ms'));$('#mo').onclick=chatOptions;$('#sq').oninput=e=>{flt.q=e.target.value;if(lastSnap)paintMsgs(lastSnap)};$('#sx').onclick=()=>{flt.q='';$('#sq').value='';$('#sr').hidden=true;if(lastSnap)paintMsgs(lastSnap)};paintReply();
  $('#fi').onchange=e=>{const f=e.target.files[0];if(f)shrink(f).then(d=>post('',d)).catch(()=>toast('That image could not be read.'))}}
-function shrink(f,mx=800,q=.6){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,mx/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};i.onerror=no;i.src=u})}
+function shrink(f,mx=PH[S.photo][0],q=PH[S.photo][1]){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,mx/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};i.onerror=no;i.src=u})}
 function postTo(c,text,img,aud,fwd,rep){const cr=db.collection('chats').doc(c.id),b=db.batch();
  b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid]});
  const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
@@ -462,7 +558,7 @@ addEventListener('popstate',e=>{if(!me)return;const st=e.state||{k:'list',tab:'c
  if(st.k==='modal'){if(!mClose)history.back();return}
  if(mClose)mClose(true);
  if(st.k==='chat'){if(!cur||cur.id!==st.id){const c=chats.find(x=>x.id===st.id);if(c)openChat(c,false);else{tab='chats';listView()}}return}
- const t=st.tab||'chats';if(cur||!$('#cl')||tab!==t){tab=t;listView()}});
+ const t=st.tab||'chats',s2=st.sub||null;if(cur||!$('#cl')||tab!==t||s2!==sub){tab=t;sub=s2;listView()}});
 }
 function showUpdate(){if($('#upd'))return;const b=document.createElement('div');b.id='upd';b.className='updbar';b.setAttribute('role','status');
  b.innerHTML='<span>A new version of Hearth is ready.</span><button class="pri" id="ur">Reload now</button>';document.body.appendChild(b);$('#ur').onclick=()=>location.reload()}
