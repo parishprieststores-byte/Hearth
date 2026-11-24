@@ -1,11 +1,8 @@
 rules_version = '2';
-// Hearth 2.0 P0 rules. NOT executed against the Firestore emulator (none available in the build environment).
 service cloud.firestore { match /databases/{d}/documents {
   function signedIn(){ return request.auth != null; }
   function isMember(c){ return signedIn() && request.auth.uid in get(/databases/$(d)/documents/chats/$(c)).data.members; }
-  // true when a per-user map changed only under the caller's own uid
   function ownKeyOnly(a, b){ return a.diff(b).affectedKeys().hasOnly([request.auth.uid]); }
-  // true when a list gained or lost nothing except the caller's uid
   function ownItemOnly(a, b){ return a.toSet().difference(b.toSet()).hasOnly([request.auth.uid]) && b.toSet().difference(a.toSet()).hasOnly([request.auth.uid]); }
 
   match /users/{u} {
@@ -24,18 +21,14 @@ service cloud.firestore { match /databases/{d}/documents {
     allow create: if signedIn() && request.auth.uid in request.resource.data.members
       && request.resource.data.members.size() <= 256
       && (
-        // saved messages
         (request.resource.data.members.size() == 1 && c == request.auth.uid + '_self')
-        // direct chat: id is the two sorted uids
         || (request.resource.data.members.size() == 2 && request.resource.data.isGroup == false
             && c == request.resource.data.members[0] + '_' + request.resource.data.members[1])
-        // group: the creator becomes the only admin
         || (request.resource.data.members.size() >= 3 && request.resource.data.isGroup == true
             && request.resource.data.admins == [request.auth.uid])
       );
 
     allow update: if signedIn() && request.auth.uid in resource.data.members && (
-      // 1. ordinary member activity: members and admins cannot change, per-user maps only under own uid
       ( request.resource.data.members == resource.data.members
         && request.resource.data.get('admins', []) == resource.data.get('admins', [])
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastFrom','lastText','lastAt','unread','typing','delivered','arch','folder','mute','pin','names','pinned','title','photo'])
@@ -50,14 +43,12 @@ service cloud.firestore { match /databases/{d}/documents {
         && ownKeyOnly(request.resource.data.get('pin', {}), resource.data.get('pin', {}))
         && ownKeyOnly(request.resource.data.get('names', {}), resource.data.get('names', {}))
       )
-      // 2. group admins manage membership (legacy groups without an admins list: every member is an admin)
       || ( resource.data.isGroup == true
         && request.auth.uid in resource.data.get('admins', resource.data.members)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members','admins','names','unread','typing','delivered'])
         && request.resource.data.members.size() >= 2 && request.resource.data.members.size() <= 256
         && request.resource.data.get('admins', []).toSet().difference(request.resource.data.members.toSet()).size() == 0
         && request.auth.uid in request.resource.data.members )
-      // 3. any member may leave a group (removing only themselves)
       || ( resource.data.isGroup == true
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members','admins'])
         && ownItemOnly(request.resource.data.members, resource.data.members)
@@ -73,13 +64,11 @@ service cloud.firestore { match /databases/{d}/documents {
         && request.resource.data.readBy == [request.auth.uid]
         && (!(request.resource.data.get('text', '') is string) || request.resource.data.get('text', '').size() <= 4000);
       allow update: if isMember(c) && (
-        // members change only their own entry in readBy / reactions / starredBy / hiddenFor
         ( request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy','reactions','starredBy','hiddenFor'])
           && ownItemOnly(request.resource.data.get('readBy', []), resource.data.get('readBy', []))
           && ownItemOnly(request.resource.data.get('starredBy', []), resource.data.get('starredBy', []))
           && ownItemOnly(request.resource.data.get('hiddenFor', []), resource.data.get('hiddenFor', []))
           && ownKeyOnly(request.resource.data.get('reactions', {}), resource.data.get('reactions', {})) )
-        // the sender edits or deletes own message
         || ( resource.data.from == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','edited','deleted','img','audio']) )
       );
