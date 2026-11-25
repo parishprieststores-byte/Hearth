@@ -18,6 +18,25 @@ service cloud.firestore { match /databases/{d}/documents {
     allow delete: if request.auth.uid == u;
   }
 
+  // voice-call signalling (only people who already share a chat can ring each other)
+  match /calls/{id} {
+    allow read: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+    allow create: if signedIn() && request.resource.data.from == request.auth.uid && request.resource.data.to != request.auth.uid
+      && request.resource.data.keys().hasOnly(['from','to','chat','state','offer','at'])
+      && request.resource.data.state == 'ringing' && request.resource.data.at == request.time
+      && request.resource.data.offer.sdp.size() <= 20000
+      && request.auth.uid in get(/databases/$(d)/documents/chats/$(request.resource.data.chat)).data.members
+      && request.resource.data.to in get(/databases/$(d)/documents/chats/$(request.resource.data.chat)).data.members;
+    allow update: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid)
+      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state','answer','endedAt'])
+      && request.resource.data.state in ['ringing','active','ended','declined','missed'];
+    match /ice/{i} {
+      allow read: if signedIn() && (get(/databases/$(d)/documents/calls/$(id)).data.to == request.auth.uid || get(/databases/$(d)/documents/calls/$(id)).data.from == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid && request.resource.data.keys().hasOnly(['from','c']) && request.resource.data.c.size() <= 2000
+        && (get(/databases/$(d)/documents/calls/$(id)).data.to == request.auth.uid || get(/databases/$(d)/documents/calls/$(id)).data.from == request.auth.uid);
+    }
+  }
+
   match /chats/{c} {
     allow read: if signedIn() && (resource == null || request.auth.uid in resource.data.members);
 
@@ -80,7 +99,12 @@ service cloud.firestore { match /databases/{d}/documents {
     match /messages/{m} {
       allow read: if isMember(c);
       allow create: if isMember(c) && request.resource.data.from == request.auth.uid
-        && request.resource.data.keys().hasOnly(['from','text','img','audio','reply','fwd','at','readBy','file'])
+        && request.resource.data.keys().hasOnly(['from','text','img','audio','reply','fwd','at','readBy','file','st','gif','call'])
+        && (!('st' in request.resource.data) || request.resource.data.st is bool)
+        && (!('gif' in request.resource.data) || (request.resource.data.gif is string && request.resource.data.gif.size() <= 300 && request.resource.data.gif.matches('https://media[0-9]*\\.giphy\\.com/.*')))
+        && (!('call' in request.resource.data) || (request.resource.data.call is map && request.resource.data.call.keys().hasOnly(['r','d'])
+            && request.resource.data.call['r'] in ['ended','missed','cancelled','declined'] && request.resource.data.call['d'] is int
+            && request.resource.data.call['d'] >= 0 && request.resource.data.call['d'] <= 86400))
         && (!('file' in request.resource.data) || (request.resource.data.file is map && request.resource.data.file.keys().hasOnly(['id','name','size','type','n'])
             && request.resource.data.file['n'] is int && request.resource.data.file['n'] >= 1 && request.resource.data.file['n'] <= 10
             && request.resource.data.file['size'] is int && request.resource.data.file['size'] <= 5000000
