@@ -117,11 +117,12 @@ body.offline #app::before{content:"You are offline. Messages will send when you 
 .lkbox{width:min(320px,90vw);text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}.dots{display:flex;gap:14px}.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ac)}.dots i.f{background:var(--ac)}
 .pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center}.pad button{height:64px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);font-size:1.4rem;font-weight:700;display:grid;place-items:center}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-.bdg{font-size:12px;font-weight:700;color:var(--ac);border:1px solid var(--ac);border-radius:999px;padding:2px 8px;margin-left:8px;white-space:nowrap}</style></head><body>
+.bdg{font-size:12px;font-weight:700;color:var(--ac);border:1px solid var(--ac);border-radius:999px;padding:2px 8px;margin-left:8px;white-space:nowrap}#ul:empty{display:none}#ul{padding:0 10px}.ul{display:flex;align-items:center;gap:8px;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:8px 10px;margin:6px 0}.ul small,.fc small{display:block;color:var(--mu);font-size:12px}.bar{display:block;height:4px;background:var(--bd);border-radius:2px;margin-top:4px}.bar b{display:block;height:100%;background:var(--ac);border-radius:2px}.fc{display:flex;align-items:center;gap:10px;padding:6px 0;min-width:230px}.fi2{flex:none;width:44px;height:44px;border-radius:10px;background:var(--ac);color:var(--on);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}.ul .mid,.fc .mid{flex:1;min-width:0}.ul .mid>b,.fc .mid>b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
 <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
 <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
 <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
 <symbol id="i-theme" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></symbol>
@@ -161,7 +162,7 @@ body.offline #app::before{content:"You are offline. Messages will send when you 
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
 const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
 
-const APP_VER='2.0 P0.1';
+const APP_VER='2.0 P1';
 const $=(s,e=document)=>e.querySelector(s);
 const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -521,7 +522,7 @@ function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}f
  view(`<header class="bar"><button id="bk" aria-label="Back">${ic('back')}</button>${av(cname(c),40,c.isGroup?'g:'+c.id:c.members.find(x=>x!==me.uid))}<div class="t"><b>${esc(cname(c))}</b><small id="sub"></small></div><button id="mo" class="ib" aria-label="Chat options">${ic('more')}</button></header><div id="pb" class="pinbar" hidden role="button" tabindex="0"></div>
  <div id="sr" class="rpl" hidden><label style="flex:1"><span>Search this chat</span><input id="sq" autocomplete="off"></label><button class="ghost" id="sx">Done</button></div>
  <div id="ms" class="msgs"></div><div id="rp" class="rpl" hidden></div><button id="dn" class="dn" hidden aria-label="Scroll to the latest messages">${ic('down')}<i id="dnc" class="bd" hidden></i></button>
- <div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><textarea id="tx" rows="1" aria-label="Message" enterkeyhint="${S.enter?'send':'enter'}"></textarea><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div><div id="selb" class="comp" hidden><button class="ghost" id="sc">Cancel</button><b id="sn" style="flex:1"></b><button class="ib" id="s1" aria-label="Copy">${ic('copy')}</button><button class="ib" id="s2" aria-label="Forward">${ic('fwd')}</button><button class="ib" id="s3" aria-label="Star">${ic('star')}</button><button class="ib" id="s4" aria-label="Delete for me">${ic('trash')}</button></div>`);
+ <div id="ul"></div><div class="comp"><div id="rb" class="rb" hidden><i class="dot"></i><b id="rt">0:00</b><span style="flex:1;color:var(--mu)">Recording</span><button id="rx" class="ghost">Discard</button><button id="rs" class="pri">Send</button></div><input id="fi" type="file" accept="image/*" hidden><button id="im" class="ib" aria-label="Send photo">${ic('image')}</button><input id="fd" type="file" hidden><button id="fb" class="ib" aria-label="Send a document">${ic('file')}</button><textarea id="tx" rows="1" aria-label="Message" enterkeyhint="${S.enter?'send':'enter'}"></textarea><button id="mc" class="ib" aria-label="Record voice note">${ic('mic')}</button><button id="sd" class="ib send" aria-label="Send">${ic('send')}</button></div><div id="selb" class="comp" hidden><button class="ghost" id="sc">Cancel</button><b id="sn" style="flex:1"></b><button class="ib" id="s1" aria-label="Copy">${ic('copy')}</button><button class="ib" id="s2" aria-label="Forward">${ic('fwd')}</button><button class="ib" id="s3" aria-label="Star">${ic('star')}</button><button class="ib" id="s4" aria-label="Delete for me">${ic('trash')}</button></div>`);
  const cr=db.collection('chats').doc(c.id);
  $('#bk').onclick=()=>history.back();
  unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};const dk=JSON.stringify(Object.entries(cur.delivered||{}).map(([k,v])=>[k,v&&v.seconds]));if(dk!==lastDk){lastDk=dk;if(lastSnap)paintMsgs(lastSnap)}
@@ -531,13 +532,52 @@ function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}f
  const send=()=>{const v=$('#tx').value.trim();if(!v)return;$('#tx').value='';grow();setDraft(cur.id,'');post(v,null)};
  $('#sd').onclick=send;$('#tx').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||(S.enter&&!e.shiftKey))){e.preventDefault();send()}};
  $('#tx').oninput=()=>{grow();setDraft(cur.id,$('#tx').value);if(!S.save&&Date.now()-typeT>2500){typeT=Date.now();cr.update({['typing.'+me.uid]:Date.now()}).catch(()=>{})}};
- $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=msgClick;msgGestures($('#ms'));bindExtras();$('#mo').onclick=chatOptions;$('#sq').oninput=e=>{flt.q=e.target.value;if(lastSnap)paintMsgs(lastSnap)};$('#sx').onclick=()=>{flt.q='';$('#sq').value='';$('#sr').hidden=true;if(lastSnap)paintMsgs(lastSnap)};paintReply();
+ $('#im').onclick=()=>$('#fi').click();$('#mc').onclick=startRec;$('#rx').onclick=()=>stopRec(false);$('#rs').onclick=()=>stopRec(true);$('#ms').onclick=msgClick;$('#ms').addEventListener('click',fileClick,true);$('#fb').onclick=()=>$('#fd').click();$('#fd').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)sendFile(cur,f)};msgGestures($('#ms'));paintUL();bindExtras();$('#mo').onclick=chatOptions;$('#sq').oninput=e=>{flt.q=e.target.value;if(lastSnap)paintMsgs(lastSnap)};$('#sx').onclick=()=>{flt.q='';$('#sq').value='';$('#sr').hidden=true;if(lastSnap)paintMsgs(lastSnap)};paintReply();
  $('#fi').onchange=e=>{const f=e.target.files[0];if(f)shrink(f).then(d=>post('',d)).catch(()=>toast('That image could not be read.'))}}
 function shrink(f,mx=PH[S.photo][0],q=PH[S.photo][1]){return new Promise((ok,no)=>{const i=new Image(),u=URL.createObjectURL(f);i.onload=()=>{const r=Math.min(1,mx/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*r;c.height=i.height*r;c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',q))};i.onerror=no;i.src=u})}
-function postTo(c,text,img,aud,fwd,rep){const cr=db.collection('chats').doc(c.id),b=db.batch();
- b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid]});
- const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
- b.update(cr,up);b.commit().catch(()=>toast('Could not send that message.'))}
+function postTo(c,text,img,aud,fwd,rep,file){if(fwd&&!text&&!img&&!aud&&!file){toast('Documents cannot be forwarded yet.');return}const cr=db.collection('chats').doc(c.id),b=db.batch();
+ b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid],...(file?{file}:{})});
+ const up={lastFrom:me.uid,lastText:text||(aud?'Voice note':file?file.name:'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
+ b.update(cr,up);b.commit().catch(e=>failSend({c,text,img,aud,fwd,rep,file},e))}
+/* ---- P1: documents, upload progress, failed-send retry (free plan: chunked Firestore docs) ---- */
+const FAIL=new Map(),UPL=new Map(),FC=new Map();let fq=0;
+const MAXF=5000000,CH=700000,BLOCK=/\.(exe|msi|bat|cmd|com|scr|apk|jar|vbs|ps1|js|sh|dll|lnk)$/i;
+const fIcon=n=>{const x=(n.split('.').pop()||'').toLowerCase();return x==='pdf'?'PDF':/^(doc|docx|odt|rtf)$/.test(x)?'DOC':/^(xls|xlsx|csv|ods)$/.test(x)?'XLS':/^(ppt|pptx)$/.test(x)?'PPT':/^(zip|rar|7z|gz|tar)$/.test(x)?'ZIP':/^(mp4|mov|webm|3gp|mkv)$/.test(x)?'VID':/^(mp3|m4a|wav|ogg|aac)$/.test(x)?'AUD':/^(jpg|jpeg|png|gif|webp|heic)$/.test(x)?'IMG':/^(txt|md)$/.test(x)?'TXT':'FILE'};
+const fSz=b=>b>=1e6?(b/1e6).toFixed(1)+' MB':Math.max(1,Math.round(b/1e3))+' KB';
+const fileCard=(id,f)=>`<div class="fc"><span class="fi2">${fIcon(f.name)}</span><span class="mid"><b>${esc(f.name)}</b><small>${fSz(f.size)}</small></span><button class="ghost" data-dl="${id}">Download</button></div>`;
+function failSend(o,e){FAIL.set('f'+(++fq),o);toast(e&&e.code==='permission-denied'?'Not sent. The database refused it. Publish the latest firestore.rules.':'Not sent. Use Retry above the message box.');paintUL()}
+function paintUL(){const el=$('#ul');if(!el||!cur)return;const rows=[];
+ UPL.forEach((u,id)=>{if(u.c.id!==cur.id)return;rows.push(`<div class="ul"><span class="mid"><b>${esc(u.name)}</b><small>${u.state==='fail'?esc(u.err||'Upload paused'):u.state==='post'?'Sending…':'Uploading '+u.pct+'%'}</small><i class="bar"><b style="width:${u.pct}%"></b></i></span>${u.state==='fail'?`<button class="ghost" data-ur="${id}">Retry</button>`:''}<button class="ghost" data-uc="${id}">${u.state==='fail'?'Delete':'Cancel'}</button></div>`)});
+ FAIL.forEach((o,id)=>{if(o.c.id!==cur.id)return;rows.push(`<div class="ul"><span class="mid"><b style="color:var(--er)">Not sent</b><small>${esc(o.text||(o.file?o.file.name:o.aud?'Voice note':'Photo'))}</small></span><button class="ghost" data-fr="${id}">Retry</button><button class="ghost" data-fd="${id}">Delete</button></div>`)});
+ el.innerHTML=rows.join('');
+ el.querySelectorAll('button').forEach(b=>b.onclick=()=>{const d=b.dataset;if(d.fr){const o=FAIL.get(d.fr);FAIL.delete(d.fr);paintUL();if(o)postTo(o.c,o.text,o.img,o.aud,o.fwd,o.rep,o.file)}else if(d.fd){FAIL.delete(d.fd);paintUL()}else if(d.ur)runUpload(d.ur);else if(d.uc)cancelUpload(d.uc)})}
+function dropChunks(cid,fid,n){const col=db.collection('chats').doc(cid).collection('chunks');for(let i=0;i<n;i++)col.doc(fid+'_'+i).delete().catch(()=>{})}
+function cancelUpload(id){const u=UPL.get(id);if(!u)return;UPL.delete(id);dropChunks(u.c.id,u.fid,u.next+1);paintUL()}
+function sendFile(c,f){if(f.size>MAXF)return toast('That file is over 5 MB. Choose a smaller file.');if(!f.size)return toast('That file is empty.');if(BLOCK.test(f.name))return toast('For safety, programs and scripts cannot be sent.');
+ const rep=replyTo;replyTo=null;paintReply();const id=c.id+'_'+Date.now();
+ UPL.set(id,{c,f,name:f.name,size:f.size,type:f.type||'application/octet-stream',fid:db.collection('chats').doc().id,pct:0,next:0,n:Math.ceil(Math.ceil(f.size/3)*4/CH),state:'up',rep,b64:null});paintUL();runUpload(id)}
+async function runUpload(id){const u=UPL.get(id);if(!u||u.busy)return;u.busy=true;u.state='up';u.err='';paintUL();
+ try{if(!u.b64){u.b64=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=()=>no(new Error('read'));r.readAsDataURL(u.f)});u.n=Math.ceil(u.b64.length/CH)}
+  const col=db.collection('chats').doc(u.c.id).collection('chunks');
+  for(;u.next<u.n;u.next++){if(!UPL.has(id))return;if(!navigator.onLine)throw new Error('offline');
+   await Promise.race([col.doc(u.fid+'_'+u.next).set({fid:u.fid,n:u.next,d:u.b64.slice(u.next*CH,(u.next+1)*CH),from:me.uid,at:FV.serverTimestamp()}),new Promise((_,no)=>setTimeout(()=>no(new Error('slow')),40000))]);
+   u.pct=Math.round((u.next+1)/u.n*100);paintUL()}
+  u.state='post';paintUL();
+  postTo(u.c,'',null,null,false,u.rep,{id:u.fid,name:clip(u.name,120),size:u.size,type:clip(u.type,100),n:u.n});
+  UPL.delete(id);paintUL()}
+ catch(e){const v=UPL.get(id);if(v){v.state='fail';v.err=e&&e.code==='permission-denied'?'The database refused this file. Publish the latest firestore.rules.':e&&e.message==='offline'?'Waiting for a connection. It retries when you are online.':'Upload paused. Tap Retry to continue.';paintUL()}}
+ finally{const w=UPL.get(id);if(w)w.busy=false}}
+addEventListener('online',()=>UPL.forEach((u,id)=>{if(u.state==='fail')runUpload(id)}));
+function fileClick(e){const b=e.target.closest&&e.target.closest('[data-dl]');if(!b)return;e.stopPropagation();e.preventDefault();dlFile(b.dataset.dl,b)}
+async function dlFile(mid,btn){const m=MS[mid];if(!m||!m.file)return;const f=m.file;
+ try{let url=FC.get(f.id);
+  if(!url){btn.disabled=true;const col=db.collection('chats').doc(cur.id).collection('chunks'),parts=[];
+   for(let i=0;i<f.n;i++){const s=await col.doc(f.id+'_'+i).get();if(!s.exists)throw new Error('missing');parts.push(s.data().d);btn.textContent=Math.round((i+1)/f.n*100)+'%'}
+   const bin=atob(parts.join('')),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+   url=URL.createObjectURL(new Blob([arr],{type:f.type||'application/octet-stream'}));FC.set(f.id,url)}
+  const a=document.createElement('a');a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast('Download started')}
+ catch(e){toast(e&&e.message==='missing'?'This file is no longer available.':'Could not download. Check your connection and try again.')}
+ finally{const b2=document.querySelector('[data-dl="'+mid+'"]');if(b2){b2.disabled=false;b2.textContent='Download'}}}
 function post(text,img,aud){postTo(cur,text,img,aud,false,replyTo);replyTo=null;paintReply()}
 let msgLimit=50,newBelow=0,prevLen=0,keepScroll=null,peerSeen=0,unPeer=null,sel=null,lastDk='',MS={},lastSnap=null,flt={q:'',star:false},openUn=0,replyTo=null;
 const dKey=t=>(t&&t.toDate?t.toDate():new Date()).toDateString();
@@ -554,7 +594,7 @@ function paintMsgs(s){const el=$('#ms');if(!el)return;lastSnap=s;const near=el.s
   const meta=`<span class="mt">${(m.starredBy||[]).includes(me.uid)?ic('star'):''}${m.edited&&!m.deleted?'edited ':''}${ftime(m.at)}${tk}</span>`,div=i===ud?'<div class="ud">Unread messages</div>':'';
   if(m.deleted)return sep+div+`<div class="m dl ${mine?'me':''}" data-id="${d.id}">This message was deleted${meta}</div>`;
   const rx={};Object.values(m.reactions||{}).forEach(e=>rx[e]=(rx[e]||0)+1);
-  return sep+div+`<div class="m ${mine?'me':''}" data-id="${d.id}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.fwd?'<span class="w" style="color:var(--mu)">Forwarded</span>':''}${m.reply?`<div class="q" data-rid="${esc(m.reply.id||'')}"><b>${esc(m.reply.name)}</b><span>${esc(m.reply.text)}</span></div>`:''}${m.audio?vn(d.id,m.audio):''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${fmt(m.text||'')}${Object.keys(rx).length?`<span class="rx">${Object.entries(rx).map(([e,n])=>`<i>${e}${n>1?' '+n:''}</i>`).join('')}</span>`:''}${meta}</div>`}).join('')||'<p class="empty">No messages to show.</p>';
+  return sep+div+`<div class="m ${mine?'me':''}" data-id="${d.id}">${cur.isGroup&&!mine?`<span class="w">${esc(cur.names[m.from]||'Member')}</span>`:''}${m.fwd?'<span class="w" style="color:var(--mu)">Forwarded</span>':''}${m.reply?`<div class="q" data-rid="${esc(m.reply.id||'')}"><b>${esc(m.reply.name)}</b><span>${esc(m.reply.text)}</span></div>`:''}${m.audio?vn(d.id,m.audio):''}${m.img?`<img src="${m.img}" alt="Photo">`:''}${m.file?fileCard(d.id,m.file):''}${fmt(m.text||'')}${Object.keys(rx).length?`<span class="rx">${Object.entries(rx).map(([e,n])=>`<i>${e}${n>1?' '+n:''}</i>`).join('')}</span>`:''}${meta}</div>`}).join('')||'<p class="empty">No messages to show.</p>';
  if(s.docs.length>=msgLimit&&!flt.q&&!flt.star)el.insertAdjacentHTML('afterbegin','<button class="earlier" id="le">Load earlier messages</button>');
  const total=s.docs.length,lastD=s.docs[total-1];
  if(!near&&prevLen>0&&total>prevLen&&lastD&&lastD.data().from!==me.uid&&!s.metadata.fromCache&&!keepScroll)newBelow+=total-prevLen;prevLen=total;
@@ -574,17 +614,17 @@ function msgGestures(el){let t,sx=0,sy=0,m=null,swiping=false;
  el.addEventListener('contextmenu',e=>{const b=e.target.closest('.m');if(b&&b.dataset.id){e.preventDefault();reset();msgMenu(b.dataset.id)}})}
 function paintReply(){const el=$('#rp');if(!el)return;el.hidden=!replyTo;if(!replyTo){el.innerHTML='';return}
  el.innerHTML=`<div class="q"><b>Replying to ${esc(replyTo.name)}</b><span>${esc(replyTo.text)}</span></div><button class="ib" id="rpx" aria-label="Cancel reply">${ic('x')}</button>`;$('#rpx').onclick=()=>{replyTo=null;paintReply()}}
-function setReply(id){const m=MS[id];if(!m||m.deleted)return;replyTo={id,name:cur.names[m.from]||'Member',text:m.text||(m.audio?'Voice note':'Photo')};paintReply();$('#tx').focus()}
+function setReply(id){const m=MS[id];if(!m||m.deleted)return;replyTo={id,name:cur.names[m.from]||'Member',text:m.text||(m.file?m.file.name:m.audio?'Voice note':'Photo')};paintReply();$('#tx').focus()}
 const upd=(ref,data)=>ref.update(data).catch(e=>toast(e&&e.code==='permission-denied'?'The database refused this change. Publish the latest firestore.rules in Firebase.':'Could not save that change.'));
 function msgMenu(id){const m=MS[id];if(!m)return;const mine=m.from===me.uid,cr=db.collection('chats').doc(cur.id).collection('messages').doc(id),del=!!m.deleted,st=(m.starredBy||[]).includes(me.uid),acts=[];
  if(!del){acts.push(['Reply',()=>setReply(id)]);acts.push(['Select',()=>selOn(id)]);
   if(m.text)acts.push(['Copy text',()=>navigator.clipboard.writeText(m.text).then(()=>toast('Copied'),()=>toast('Could not copy.'))]);
-  acts.push(['Forward',()=>fwdPick(m)]);
+  if(!m.file)acts.push(['Forward',()=>fwdPick(m)]);
   acts.push([st?'Remove star':'Star message',()=>upd(cr,{starredBy:st?FV.arrayRemove(me.uid):FV.arrayUnion(me.uid)})]);const pn=cur.pinned&&cur.pinned.id===id,chr=db.collection('chats').doc(cur.id);acts.push([pn?'Unpin message':'Pin message',()=>pn?upd(chr,{pinned:FV.delete()}):upd(chr,{pinned:{id,text:(m.text||(m.audio?'Voice note':'Photo')).slice(0,80),by:me.uid}})]);
-  if(mine&&m.text&&!m.audio&&!m.img)acts.push(['Edit message',()=>editMsg(cr,m)]);
+  if(mine&&m.text&&!m.audio&&!m.img&&!m.file)acts.push(['Edit message',()=>editMsg(cr,m)]);
   if(mine&&cur.isGroup)acts.push(['Who has read this',()=>{const r=cur.members.filter(u=>u!==me.uid&&(m.readBy||[]).includes(u)).map(u=>cur.names[u]||'Member');const x=modal(`<h3>Read by</h3><p>${r.length?esc(r.join(', ')):'Nobody yet.'}</p><div class="acts"><button class="pri" id="rd">Back to chat</button></div>`);$('#rd').onclick=x.close}])}
  acts.push(['Delete for me',()=>upd(cr,{hiddenFor:FV.arrayUnion(me.uid)})]);
- if(mine&&!del)acts.push(['Delete for everyone',()=>confirmD('Delete for everyone?','This removes the message for all members and cannot be undone.','Delete for everyone',()=>upd(cr,{deleted:true,text:'',img:null,audio:null}))]);
+ if(mine&&!del)acts.push(['Delete for everyone',()=>confirmD('Delete for everyone?','This removes the message for all members and cannot be undone.','Delete for everyone',()=>{if(m.file)dropChunks(cur.id,m.file.id,m.file.n);upd(cr,{deleted:true,text:'',img:null,audio:null,file:null})})]);
  const mo=sheet(acts,del?'':'<div class="emo">'+['👍','❤️','😂','😮','😢','🙏'].map(e=>`<button data-e="${e}" aria-label="React ${e}">${e}</button>`).join('')+'</div>');
  mo.el.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const same=(m.reactions||{})[me.uid]===b.dataset.e;upd(cr,{['reactions.'+me.uid]:same?FV.delete():b.dataset.e});mo.close()})}
 function editMsg(cr,m){const x=modal(`<h3>Edit message</h3><label><span>Message</span><input id="ed"></label><div class="acts"><button class="ghost" id="ec">Keep original</button><button class="pri" id="es">Save change</button></div>`);

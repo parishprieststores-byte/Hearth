@@ -17,3 +17,5 @@ Residual risks (not fixed in P0)
 - No App Check, no rate limiting, no E2EE: messages are readable by Firebase/Google. Do not call Hearth end-to-end encrypted.
 - Rules use get() on the chat for every message read or write; on the free plan this counts toward the 50,000 reads/day quota.
 - Rules were written but NOT run in the Firebase emulator. Publish, then run the checklist in NOTES.md.
+
+P1 addendum: chunk documents are readable only by chat members; only the uploader can create or delete them; size and naming are checked by the rules. Blocking of programs and scripts is done in the app only (a modified client could bypass it). Files are not scanned for malware and are not end-to-end encrypted.

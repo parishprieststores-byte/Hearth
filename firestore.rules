@@ -65,10 +65,26 @@ service cloud.firestore { match /databases/{d}/documents {
         && request.resource.data.get('admins', []).toSet().difference(request.resource.data.members.toSet()).size() == 0 )
     );
 
+    // file chunks (base64 pieces of documents; free plan has no Storage)
+    match /chunks/{k} {
+      allow read: if isMember(c);
+      allow create: if isMember(c) && request.resource.data.from == request.auth.uid
+        && request.resource.data.keys().hasOnly(['fid','n','d','from','at'])
+        && request.resource.data.n is int && request.resource.data.n >= 0 && request.resource.data.n < 10
+        && k == request.resource.data.fid + '_' + string(request.resource.data.n)
+        && request.resource.data.d is string && request.resource.data.d.size() <= 720000
+        && request.resource.data.at == request.time;
+      allow delete: if isMember(c) && resource.data.from == request.auth.uid;
+    }
+
     match /messages/{m} {
       allow read: if isMember(c);
       allow create: if isMember(c) && request.resource.data.from == request.auth.uid
-        && request.resource.data.keys().hasOnly(['from','text','img','audio','reply','fwd','at','readBy'])
+        && request.resource.data.keys().hasOnly(['from','text','img','audio','reply','fwd','at','readBy','file'])
+        && (!('file' in request.resource.data) || (request.resource.data.file is map && request.resource.data.file.keys().hasOnly(['id','name','size','type','n'])
+            && request.resource.data.file['n'] is int && request.resource.data.file['n'] >= 1 && request.resource.data.file['n'] <= 10
+            && request.resource.data.file['size'] is int && request.resource.data.file['size'] <= 5000000
+            && request.resource.data.file['name'] is string && request.resource.data.file['name'].size() <= 120))
         && request.resource.data.at == request.time
         && request.resource.data.readBy == [request.auth.uid]
         && (!(request.resource.data.get('text', '') is string) || request.resource.data.get('text', '').size() <= 4000);
@@ -81,7 +97,7 @@ service cloud.firestore { match /databases/{d}/documents {
           && ownKeyOnly(request.resource.data.get('reactions', {}), resource.data.get('reactions', {})) )
         // the sender edits or deletes own message
         || ( resource.data.from == request.auth.uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','edited','deleted','img','audio']) )
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','edited','deleted','img','audio','file']) )
       );
     }
   }
