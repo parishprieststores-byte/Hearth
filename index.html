@@ -117,7 +117,7 @@ body.offline #app::before{content:"You are offline. Messages will send when you 
 .lkbox{width:min(320px,90vw);text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}.dots{display:flex;gap:14px}.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ac)}.dots i.f{background:var(--ac)}
 .pad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center}.pad button{height:64px;border-radius:50%;background:var(--sf);border:1px solid var(--bd);font-size:1.4rem;font-weight:700;display:grid;place-items:center}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style></head><body>
+.bdg{font-size:12px;font-weight:700;color:var(--ac);border:1px solid var(--ac);border-radius:999px;padding:2px 8px;margin-left:8px;white-space:nowrap}</style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
 <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -161,7 +161,7 @@ body.offline #app::before{content:"You are offline. Messages will send when you 
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
 const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
 
-const APP_VER='2.0 P0';
+const APP_VER='2.0 P0.1';
 const $=(s,e=document)=>e.querySelector(s);
 const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -525,7 +525,7 @@ function openChat(c,push=true){if(!c)return;cur=c;if(unUpd){unUpd();unUpd=null}f
  const cr=db.collection('chats').doc(c.id);
  $('#bk').onclick=()=>history.back();
  unChat=cr.onSnapshot(s=>{if(!s.exists)return;cur={id:s.id,...s.data()};const t=cur.typing||{};const dk=JSON.stringify(Object.entries(cur.delivered||{}).map(([k,v])=>[k,v&&v.seconds]));if(dk!==lastDk){lastDk=dk;if(lastSnap)paintMsgs(lastSnap)}
-  paintSub();paintHdr();paintPin();clearTimeout(typeTimer);typeTimer=setTimeout(paintSub,5200)});
+  paintSub();paintHdr();paintPin();clearTimeout(typeTimer);typeTimer=setTimeout(paintSub,5200)},e=>{if(e&&e.code==='permission-denied'){toast('You are no longer in this group.');if(history.state&&history.state.k==='chat')history.back();else{leaveChat();listView()}}});
  if(!c.isGroup&&c.members.length>1){const pid=c.members.find(x=>x!==me.uid);unPeer=db.collection('users').doc(pid).onSnapshot(s=>{peerSeen=(s.data()||{}).lastSeen||0;paintSub()})}
  msgLimit=50;subMsgs();
  const send=()=>{const v=$('#tx').value.trim();if(!v)return;$('#tx').value='';grow();setDraft(cur.id,'');post(v,null)};
@@ -639,13 +639,54 @@ async function allMsgs(){const s=await db.collection('chats').doc(cur.id).collec
 async function clearChat(){try{const docs=await allMsgs();for(let i=0;i<docs.length;i+=400){const b=db.batch();docs.slice(i,i+400).forEach(d=>b.update(d.ref,{hiddenFor:FV.arrayUnion(me.uid)}));await b.commit()}toast('Chat cleared')}catch(e){toast('Could not clear the chat.')}}
 async function exportChat(){try{const docs=await allMsgs(),lines=docs.map(d=>d.data()).filter(m=>!(m.hiddenFor||[]).includes(me.uid)).map(m=>'['+(m.at&&m.at.toDate?m.at.toDate().toLocaleString():'')+'] '+(cur.names[m.from]||'Member')+': '+(m.deleted?'(deleted)':m.audio?'[voice note '+fmtS(m.audio.s)+']':m.img?'[photo] '+(m.text||''):m.text));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([cname(cur)+'\n\n'+lines.join('\n')],{type:'text/plain'}));a.download='Hearth chat - '+(cname(cur).replace(/[^\w ]+/g,'').trim()||'chat')+'.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Chat exported')}catch(e){toast('Could not export the chat.')}}
-function groupInfo(){const c=cur,cr=db.collection('chats').doc(c.id),ms=c.members.map(u=>c.names[u]||'Member');
- const x=modal(`<h3>Group info</h3><div id="gpa" style="align-self:center">${av(c.title,72,'g:'+c.id)}</div><button class="ghost" id="gpp">Change group photo</button><input id="gpf" type="file" accept="image/*" hidden><label><span>Group name</span><input id="gn2" maxlength="40"></label><div class="lbl">${ms.length} members</div><div class="res">${ms.map(n=>`<div class="row" style="cursor:default;min-height:48px"><span class="mid"><b>${esc(n)}</b></span></div>`).join('')}</div><div class="acts"><button class="ghost" id="gc">Close</button><button class="pri" id="gs">Save name</button></div>`);
- $('#gn2').value=c.title||'';$('#gc').onclick=x.close;
- const isAdm=!c.admins||c.admins.includes(me.uid);
- $('#gs').onclick=()=>{if(!isAdm)return toast('Only group admins can change this.');const v=clip($('#gn2').value.trim(),40);if(!v)return toast('A group needs a name.');upd(cr,{title:v});x.close()};
- $('#gpp').onclick=()=>$('#gpf').click();
- $('#gpf').onchange=e=>{const f=e.target.files[0];if(f&&!isAdm)return toast('Only group admins can change this.');if(f)thumb(f).then(d=>{upd(cr,{photo:d});UP['g:'+c.id]={photo:d};$('#gpa').innerHTML=av(c.title,72,'g:'+c.id)}).catch(()=>toast('That image could not be read.'))}}
+/* ---- group admin module ---- */
+const isAdmin=(c,u)=>!c.admins||c.admins.includes(u);
+async function gUpdate(patch,msg){try{const r=db.collection('chats').doc(cur.id);await r.update(patch);const s=await r.get();if(s.exists)cur={id:s.id,...s.data()};if(msg)toast(msg);return true}catch(e){toast(e&&e.code==='permission-denied'?'Only group admins can do that.':'Could not save that change. Check your connection.');return false}}
+function gAsk(o){const x=modal(`<h3>${esc(o.title)}</h3><p>${esc(o.text)}</p><div class="acts"><button class="ghost" id="ano">${esc(o.no)}</button><button class="pri" id="ayes">${esc(o.ok)}</button></div>`);
+ $('#ano').onclick=()=>{x.close();groupInfo()};
+ $('#ayes').onclick=async()=>{$('#ayes').disabled=true;const r=await o.fn();x.close();if(r!=='left')groupInfo()}}
+function memberSheet(u){const c=cur,n=c.names[u]||'Member',a=c.admins.includes(u);
+ const x=modal(`<h3>${esc(n)}</h3><div class="res"><button class="row" id="ma"><span class="mid"><b>${a?'Remove as admin':'Make group admin'}</b></span></button><button class="row" id="mr"><span class="mid"><b style="color:var(--er)">Remove from group</b></span></button></div><div class="acts"><button class="ghost" id="mb">Back to group info</button></div>`);
+ $('#mb').onclick=()=>{x.close();groupInfo()};
+ $('#ma').onclick=async()=>{$('#ma').disabled=true;await gUpdate({admins:a?FV.arrayRemove(u):FV.arrayUnion(u)},a?n+' is no longer an admin':n+' is now a group admin');x.close();groupInfo()};
+ $('#mr').onclick=()=>{x.close();gAsk({title:'Remove '+n+'?',text:'They will lose access to this group and its messages.',ok:'Remove '+n,no:'Keep '+n,fn:()=>gUpdate({members:FV.arrayRemove(u),admins:FV.arrayRemove(u)},n+' was removed')})}}
+function addPeople(){const c=cur,sel=new Map();let found=[],dt;
+ const x=modal(`<h3>Add members</h3><label><span>Find people by name</span><input id="aq" autocomplete="off"></label><div id="ares" class="res"></div><div class="acts"><button class="ghost" id="ac">Back to group info</button><button class="pri" id="ag" disabled>Add</button></div>`);
+ const paint=()=>{$('#ares').innerHTML=found.length?found.map(u=>`<button class="row ${sel.has(u.id)?'s':''}" data-id="${u.id}">${av(u.name,0,u.id)}<span class="mid"><b>${esc(u.name)}</b></span>${sel.has(u.id)?ic('check'):''}</button>`).join(''):'<p class="empty">Type a name to search.</p>';
+  $('#ares').querySelectorAll('.row').forEach(b=>b.onclick=()=>{const u=found.find(f=>f.id===b.dataset.id);sel.has(u.id)?sel.delete(u.id):sel.set(u.id,u);paint()});
+  $('#ag').disabled=!sel.size;$('#ag').textContent=sel.size?'Add '+sel.size:'Add'};
+ paint();$('#ac').onclick=()=>{x.close();groupInfo()};
+ $('#aq').oninput=e=>{clearTimeout(dt);const q=e.target.value.trim().normalize('NFKC').toLowerCase();
+  dt=setTimeout(async()=>{if(!q){found=[...sel.values()];return paint()}
+   try{const s=await db.collection('users').where('nameLower','>=',q).where('nameLower','<=',q+'\uf8ff').limit(15).get();
+    found=s.docs.filter(d=>!c.members.includes(d.id)).map(d=>({id:d.id,...d.data()}));found.forEach(u=>UP[u.id]=u);sel.forEach(u=>{if(!found.some(f=>f.id===u.id))found.push(u)});paint()}
+   catch(e2){toast('Search failed. Are you online?')}},300)};
+ $('#ag').onclick=async()=>{if(c.members.length+sel.size>256)return toast('A group can have up to 256 members.');
+  const patch={members:FV.arrayUnion(...sel.keys())};sel.forEach(u=>patch['names.'+u.id]=u.name);
+  $('#ag').disabled=true;await gUpdate(patch,sel.size+(sel.size>1?' people were added':' person was added'));x.close();groupInfo()}}
+function leaveGroup(){const c=cur,id=c.id;
+ if(c.admins&&c.admins.includes(me.uid)&&c.admins.length===1&&c.members.length>1){toast('Make another member an admin before you leave.');return}
+ gAsk({title:'Leave this group?',text:'You will stop receiving its messages. An admin can add you back.',ok:'Leave group',no:'Stay in group',fn:async()=>{
+  try{const p={members:FV.arrayRemove(me.uid)};if(c.admins)p.admins=FV.arrayRemove(me.uid);await db.collection('chats').doc(id).update(p);toast('You left the group');
+   setTimeout(()=>{if(history.state&&history.state.k==='chat')history.back()},80);setTimeout(()=>{if(cur&&cur.id===id){leaveChat();listView()}},600);return 'left'}
+  catch(e){toast('Could not leave the group. Check your connection.');return 'stay'}}})}
+function groupInfo(){const c=cur,adm=isAdmin(c,me.uid),legacy=!c.admins,cr=db.collection('chats').doc(c.id);
+ const rows=c.members.map(u=>{const n=u===me.uid?myName():(c.names[u]||'Member'),a=!legacy&&c.admins.includes(u);
+  return `<button class="row" data-m="${u}" style="min-height:52px">${av(n,0,u)}<span class="mid"><b>${esc(n)}${u===me.uid?' (you)':''}</b></span>${a?'<span class="bdg">Admin</span>':''}</button>`}).join('');
+ const m=modal(`<h3>Group info</h3><div id="gpa" style="align-self:center">${av(c.title||'Group',72,'g:'+c.id)}</div>
+  ${adm?'<button class="ghost" id="gpb">Change group photo</button><input type="file" id="gpf" accept="image/*" hidden>':''}
+  <label><span>Group name</span><input id="gn2" maxlength="40" value="${esc(c.title||'')}" ${adm?'':'disabled'}></label>
+  <p class="lbl">${c.members.length} members${adm&&!legacy?' · tap a member to manage':''}</p><div class="res">${rows}</div>
+  ${legacy?'<p class="empty">This is an older group with no admins, so every member can manage it. Set up admins to restrict that to people you choose.</p><button class="ghost" id="gla">Set up admins (you become admin)</button>':''}
+  <div class="acts">${adm?'<button class="ghost" id="gam">Add members</button>':''}<button class="ghost" id="glv" style="color:var(--er)">Leave group</button></div>
+  <div class="acts"><button class="ghost" id="gc">Close</button>${adm?'<button class="pri" id="gs">Save name</button>':''}</div>`);
+ $('#gc').onclick=m.close;$('#glv').onclick=()=>{m.close();leaveGroup()};
+ document.querySelectorAll('#dlg .row[data-m]').forEach(b=>b.onclick=()=>{const u=b.dataset.m;if(adm&&!legacy&&u!==me.uid){m.close();memberSheet(u)}});
+ if(legacy)$('#gla').onclick=async()=>{await gUpdate({admins:[me.uid]},'You are now the group admin');m.close();groupInfo()};
+ if(adm){$('#gam').onclick=()=>{m.close();addPeople()};
+  $('#gs').onclick=async()=>{const v=$('#gn2').value.trim();if(!v)return toast('Give the group a name.');if(v===c.title)return m.close();await gUpdate({title:v},'Group name saved');m.close()};
+  $('#gpb').onclick=()=>$('#gpf').click();
+  $('#gpf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=await thumb(f);UP['g:'+c.id]={photo:d};if(await gUpdate({photo:d},'Group photo updated'))$('#gpa').innerHTML=av(c.title||'Group',72,'g:'+c.id)}catch(x){toast('Could not use that photo.')}}}}
 function tonePick(){const cid=cur.id,list=[['','Default (your main tone)']].concat(Object.entries(TONES).map(([k,v])=>[k,v[0]])).concat(S.customName?[['custom',S.customName+' (yours)']]:[]),t0=(S.ct||{})[cid]||'';
  const x=modal(`<h3>Tone for this chat</h3><div class="res" role="radiogroup">${list.map(([k,n])=>`<button class="row" role="radio" aria-checked="${t0===k}" data-ct="${k}"><span class="mid"><b>${esc(n)}</b></span>${t0===k?'<span style="color:var(--ac);display:flex">'+ic('check')+'</span>':''}</button>`).join('')}</div><div class="acts"><button class="pri" id="tc">Done</button></div>`);
  $('#tc').onclick=x.close;x.el.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{S.ct=S.ct||{};if(b.dataset.ct)S.ct[cid]=b.dataset.ct;else delete S.ct[cid];saveS();if(b.dataset.ct)playTone(b.dataset.ct);x.close()})}
