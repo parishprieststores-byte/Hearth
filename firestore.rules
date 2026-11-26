@@ -70,9 +70,15 @@ service cloud.firestore { match /databases/{d}/documents {
       && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
       && request.resource.data.desc is string && request.resource.data.desc.size() <= 400
       && request.resource.data.at == request.time;
-    allow update: if isStaff(cid)
-      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','nameLower','desc','approval'])
-      && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60;
+    allow update: if ( isStaff(cid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','nameLower','desc','approval'])
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60 )
+      || ( isActive(cid) && myRole(cid) == 'owner'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['owner'])
+        && request.resource.data.owner != request.auth.uid
+        && get(mdoc(cid, request.resource.data.owner)).data.role == 'admin'
+        && get(mdoc(cid, request.resource.data.owner)).data.status == 'active' );
+    allow delete: if isActive(cid) && myRole(cid) == 'owner';
 
     match /private/{x} {
       allow read, write: if isStaff(cid);
@@ -92,15 +98,26 @@ service cloud.firestore { match /databases/{d}/documents {
             && ( cdoc(cid).kind == 'public'
                  || request.resource.data.get('code', '') == get(/databases/$(d)/documents/communities/$(cid)/private/invite).data.code ) )
         );
-      allow update: if isStaff(cid) && u != cdoc(cid).owner
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role','status'])
-        && request.resource.data.role in ['member','leader','admin']
-        && request.resource.data.status in ['active','suspended']
-        && (request.resource.data.role != 'admin' || myRole(cid) == 'owner')
-        && (resource.data.role != 'admin' || myRole(cid) == 'owner');
-      allow delete: if signedIn() && resource.data.role != 'owner' && (
-          (request.auth.uid == u && resource.data.status != 'suspended')
-          || (isStaff(cid) && (resource.data.role != 'admin' || myRole(cid) == 'owner'))
+      allow update: if ( isStaff(cid) && u != cdoc(cid).owner
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role','status'])
+          && request.resource.data.role in ['member','leader','admin']
+          && request.resource.data.status in ['active','suspended']
+          && (request.resource.data.role != 'admin' || myRole(cid) == 'owner')
+          && (resource.data.role != 'admin' || myRole(cid) == 'owner') )
+        // ownership transfer (done in one batch with the community owner change)
+        || ( isActive(cid) && myRole(cid) == 'owner' && resource.data.role == 'admin'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+          && request.resource.data.role == 'owner'
+          && getAfter(/databases/$(d)/documents/communities/$(cid)).data.owner == u )
+        || ( request.auth.uid == u && resource.data.role == 'owner'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+          && request.resource.data.role == 'admin'
+          && getAfter(/databases/$(d)/documents/communities/$(cid)).data.owner != u );
+      allow delete: if signedIn() && (
+          ( resource.data.role != 'owner' && (
+              (request.auth.uid == u && resource.data.status != 'suspended')
+              || (isStaff(cid) && (resource.data.role != 'admin' || myRole(cid) == 'owner')) ) )
+          || ( resource.data.role == 'owner' && request.auth.uid == u && !exists(/databases/$(d)/documents/communities/$(cid)) )
         );
     }
 
@@ -211,6 +228,8 @@ service cloud.firestore { match /databases/{d}/documents {
     );
 
     // file chunks (base64 pieces of documents; free plan has no Storage)
+    allow delete: if signedIn() && resource.data.isGroup == true && request.auth.uid in resource.data.get('admins', []);
+
     match /chunks/{k} {
       allow read: if isMember(c);
       allow create: if isMember(c) && request.resource.data.from == request.auth.uid
@@ -219,11 +238,14 @@ service cloud.firestore { match /databases/{d}/documents {
         && k == request.resource.data.fid + '_' + string(request.resource.data.n)
         && request.resource.data.d is string && request.resource.data.d.size() <= 720000
         && request.resource.data.at == request.time;
-      allow delete: if isMember(c) && resource.data.from == request.auth.uid;
+      allow delete: if isMember(c) && (resource.data.from == request.auth.uid
+        || (get(/databases/$(d)/documents/chats/$(c)).data.isGroup == true && request.auth.uid in get(/databases/$(d)/documents/chats/$(c)).data.get('admins', [])));
     }
 
     match /messages/{m} {
       allow read: if isMember(c);
+      allow delete: if isMember(c) && get(/databases/$(d)/documents/chats/$(c)).data.isGroup == true
+        && request.auth.uid in get(/databases/$(d)/documents/chats/$(c)).data.get('admins', []);
       allow create: if isMember(c) && request.resource.data.from == request.auth.uid
         && request.resource.data.keys().hasOnly(['from','text','img','audio','reply','fwd','at','readBy','file','st','gif','call'])
         && (!('st' in request.resource.data) || request.resource.data.st is bool)
