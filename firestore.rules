@@ -37,6 +37,132 @@ service cloud.firestore { match /databases/{d}/documents {
     }
   }
 
+  // ---------- Communities ----------
+  function mdoc(cid, u){ return /databases/$(d)/documents/communities/$(cid)/members/$(u); }
+  function cdoc(cid){ return get(/databases/$(d)/documents/communities/$(cid)).data; }
+  function isActive(cid){ return signedIn() && exists(mdoc(cid, request.auth.uid)) && get(mdoc(cid, request.auth.uid)).data.status == 'active'; }
+  function myRole(cid){ return get(mdoc(cid, request.auth.uid)).data.role; }
+  function isStaff(cid){ return isActive(cid) && myRole(cid) in ['owner','admin']; }
+  function isLeader(cid){ return isActive(cid) && myRole(cid) in ['owner','admin','leader']; }
+  function spaceOf(cid, sid){ return get(/databases/$(d)/documents/communities/$(cid)/spaces/$(sid)).data; }
+
+  match /users/{u}/mycomm/{c} {
+    allow read, delete: if signedIn() && request.auth.uid == u;
+    allow create, update: if signedIn() && request.auth.uid == u
+      && request.resource.data.keys().hasOnly(['name','at'])
+      && request.resource.data.name is string && request.resource.data.name.size() <= 60;
+  }
+
+  match /discover/{cid} {
+    allow read: if signedIn();
+    allow create, update: if signedIn() && cdoc(cid).owner == request.auth.uid && cdoc(cid).kind == 'public'
+      && request.resource.data.keys().hasOnly(['name','nameLower','desc'])
+      && request.resource.data.name is string && request.resource.data.name.size() <= 60
+      && request.resource.data.desc is string && request.resource.data.desc.size() <= 400;
+    allow delete: if signedIn() && cdoc(cid).owner == request.auth.uid;
+  }
+
+  match /communities/{cid} {
+    allow read: if signedIn();
+    allow create: if signedIn() && request.resource.data.owner == request.auth.uid
+      && request.resource.data.keys().hasOnly(['name','nameLower','desc','kind','approval','owner','at'])
+      && request.resource.data.kind in ['public','private'] && request.resource.data.approval is bool
+      && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+      && request.resource.data.desc is string && request.resource.data.desc.size() <= 400
+      && request.resource.data.at == request.time;
+    allow update: if isStaff(cid)
+      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','nameLower','desc','approval'])
+      && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60;
+
+    match /private/{x} {
+      allow read, write: if isStaff(cid);
+    }
+
+    match /members/{u} {
+      allow read: if signedIn() && (request.auth.uid == u || isActive(cid));
+      allow create: if signedIn() && request.auth.uid == u && request.resource.data.uid == u
+        && request.resource.data.keys().hasOnly(['uid','name','role','status','at','code'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.at == request.time
+        && (
+          ( request.resource.data.role == 'owner' && request.resource.data.status == 'active'
+            && cdoc(cid).owner == u && !('code' in request.resource.data) )
+          || ( request.resource.data.role == 'member'
+            && request.resource.data.status == (cdoc(cid).approval ? 'pending' : 'active')
+            && ( cdoc(cid).kind == 'public'
+                 || request.resource.data.get('code', '') == get(/databases/$(d)/documents/communities/$(cid)/private/invite).data.code ) )
+        );
+      allow update: if isStaff(cid) && u != cdoc(cid).owner
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role','status'])
+        && request.resource.data.role in ['member','leader','admin']
+        && request.resource.data.status in ['active','suspended']
+        && (request.resource.data.role != 'admin' || myRole(cid) == 'owner')
+        && (resource.data.role != 'admin' || myRole(cid) == 'owner');
+      allow delete: if signedIn() && resource.data.role != 'owner' && (
+          (request.auth.uid == u && resource.data.status != 'suspended')
+          || (isStaff(cid) && (resource.data.role != 'admin' || myRole(cid) == 'owner'))
+        );
+    }
+
+    match /spaces/{sid} {
+      allow read: if isActive(cid) && (resource.data.lead == false || isLeader(cid));
+      allow create: if isStaff(cid)
+        && request.resource.data.keys().hasOnly(['name','kind','lead','ord','at'])
+        && request.resource.data.kind in ['chat','announce','prayer','events','leaders']
+        && request.resource.data.lead == (request.resource.data.kind == 'leaders')
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40
+        && request.resource.data.at == request.time;
+      allow update: if isStaff(cid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','ord']);
+      allow delete: if isStaff(cid);
+
+      match /posts/{p} {
+        allow read: if isActive(cid) && (spaceOf(cid, sid).lead == false || isLeader(cid));
+        allow create: if isActive(cid) && request.resource.data.from == request.auth.uid
+          && request.resource.data.keys().hasOnly(['from','name','text','img','at','poll'])
+          && (!('poll' in request.resource.data) || (request.resource.data.poll is map && request.resource.data.poll.keys().hasOnly(['q','opts'])
+              && request.resource.data.poll.q is string && request.resource.data.poll.q.size() > 0 && request.resource.data.poll.q.size() <= 200
+              && request.resource.data.poll.opts is list && request.resource.data.poll.opts.size() >= 2 && request.resource.data.poll.opts.size() <= 6))
+          && request.resource.data.at == request.time
+          && request.resource.data.name is string && request.resource.data.name.size() <= 60
+          && request.resource.data.text is string && request.resource.data.text.size() <= 2000
+          && ( spaceOf(cid, sid).kind in ['chat','prayer'] || isLeader(cid) )
+          && ( spaceOf(cid, sid).kind != 'events' )
+          && ( spaceOf(cid, sid).lead == false || isLeader(cid) );
+        allow update: if isActive(cid) && (
+          ( request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+            && ownKeyOnly(request.resource.data.get('reactions', {}), resource.data.get('reactions', {})) )
+          || ( 'poll' in resource.data
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes'])
+            && ownKeyOnly(request.resource.data.get('votes', {}), resource.data.get('votes', {}))
+            && (!(request.auth.uid in request.resource.data.votes) || (request.resource.data.votes[request.auth.uid] is int
+                && request.resource.data.votes[request.auth.uid] >= 0 && request.resource.data.votes[request.auth.uid] < resource.data.poll.opts.size())) )
+          || ( resource.data.from == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text','edited'])
+            && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000 )
+          || ( isLeader(cid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned']) && request.resource.data.pinned is bool ) );
+        allow delete: if isActive(cid) && (resource.data.from == request.auth.uid || isStaff(cid));
+      }
+
+      match /events/{e} {
+        allow read: if isActive(cid);
+        allow create: if isLeader(cid) && spaceOf(cid, sid).kind == 'events'
+          && request.resource.data.keys().hasOnly(['title','when','place','note','by','at','rsvp'])
+          && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time
+          && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 80
+          && request.resource.data.when is int
+          && request.resource.data.place is string && request.resource.data.place.size() <= 80
+          && request.resource.data.note is string && request.resource.data.note.size() <= 400
+          && request.resource.data.rsvp == {};
+        allow update: if isActive(cid) && (
+          ( request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp'])
+            && ownKeyOnly(request.resource.data.rsvp, resource.data.rsvp)
+            && (!(request.auth.uid in request.resource.data.rsvp) || request.resource.data.rsvp[request.auth.uid] in ['yes','no','maybe']) )
+          || ( isLeader(cid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title','when','place','note']) ) );
+        allow delete: if isLeader(cid);
+      }
+    }
+  }
+
   match /chats/{c} {
     allow read: if signedIn() && (resource == null || request.auth.uid in resource.data.members);
 
