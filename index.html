@@ -163,11 +163,12 @@ body.offline #app::before{content:"You are offline. Messages will send when you 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script>
 /* Hearth: paste your Firebase web config below (public by design; access is enforced by firestore.rules) */
 const CFG={apiKey:"AIzaSyBfWIs9ZefFaqOwI_t6PTiYzoXjE8_lZf0",authDomain:"hearth-priest.firebaseapp.com",projectId:"hearth-priest",storageBucket:"hearth-priest.firebasestorage.app",messagingSenderId:"216702789254",appId:"1:216702789254:web:1da7b2384e8a672f3ad307"};
 
-const APP_VER='2.0 P3D';
+const APP_VER='2.0 P4';
 const $=(s,e=document)=>e.querySelector(s);
 const ic=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -268,7 +269,7 @@ function authView(mode='in',err=''){const up=mode==='up';
   catch(x){authView(mode,x.code==='auth/invalid-credential'?'Wrong email or password.':x.code==='auth/email-already-in-use'?'That email already has an account.':x.message)}}}
 
 auth.onAuthStateChanged(u=>{me=u;unList&&unList();unList=null;
- if(u){db.collection('users').doc(u.uid).update({email:FV.delete()}).catch(()=>{});listenChats();listView();listenCalls();handleJoinLink()}else{chats=[];cur=null;authView()}});
+ if(u){db.collection('users').doc(u.uid).update({email:FV.delete()}).catch(()=>{});listenChats();listView();listenCalls();handleJoinLink();pushRefresh()}else{chats=[];cur=null;authView()}});
 
 /* ---- chat list ---- */
 const cname=c=>c.isGroup?c.title:c.members.length===1?'Saved messages':(c.names[c.members.find(x=>x!==me.uid)]||'Chat');
@@ -285,7 +286,7 @@ function listenChats(){unList&&unList();prevUn={};primed=false;birthdayToday();b
   ()=>toast('Could not load chats. Check rules and connection.'))}
 function listView(){leaveChat();
  view(`<header class="bar"><button id="hb" aria-label="Back to chats" hidden>${ic('back')}</button><h2 id="ttl">Hearth</h2><button id="mu" aria-label="${muted?'Unmute sounds':'Mute sounds'}">${ic(muted?'belloff':'bell')}</button><button id="th" aria-label="Switch theme">${ic('theme')}</button><button id="lo" aria-label="Sign out">${ic('out')}</button></header><div class="chips" id="ch"></div><div id="cl" class="list"></div><nav class="tabs" aria-label="Sections">${[['chats','chat','Chats'],['updates','updates','Updates'],['comm','people','Communities'],['bdays','gift','Birthdays'],['profile','user','Profile']].map(([k,i,t])=>`<button data-t="${k}" aria-label="${t}">${ic(i)}<span>${t}</span></button>`).join('')}</nav><button id="fab" class="fab" aria-label="New chat">${ic('plus')}</button>`);
- $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=()=>auth.signOut();$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.t));$('#hb').onclick=()=>{if(sub)history.back();else goTab('chats')};showTab(tab)}
+ $('#th').onclick=flipTheme;$('#mu').onclick=toggleMute;$('#lo').onclick=async()=>{try{await pushOff()}catch(e){}auth.signOut()};$('#fab').onclick=newChat;holdBind($('#cl'));document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.t));$('#hb').onclick=()=>{if(sub)history.back();else goTab('chats')};showTab(tab)}
 let lf='all';
 const pf=(c,k)=>(c[k]||{})[me.uid];
 const vis=c=>{const u=(c.unread||{})[me.uid]||0;if(lf==='arch')return pf(c,'arch');if(pf(c,'arch'))return false;if(lf.startsWith('f:'))return pf(c,'folder')===lf.slice(2);return lf==='unread'?u>0:lf==='groups'?c.isGroup:true};
@@ -425,11 +426,11 @@ async function renderSettings(){const el=$('#cl');if(tab!=='profile')return;
  el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>openSub(b.dataset.s))}
 function subNotif(){$('#ttl').textContent='Notifications';const el=$('#cl');
  const list=Object.entries(TONES).map(([k,v])=>[k,v[0]]).concat(S.customName?[['custom',S.customName+' (yours)']]:[]);
- el.innerHTML=`<div class="pagepad">${swHtml('n1','Message sounds',!muted)}${swHtml('n2','Banner for new messages inside the app',S.toast)}${swHtml('n3','Birthday reminder',S.bday)}
+ el.innerHTML=`<div class="pagepad"><div class="lbl">Push notifications</div><p id="pst" style="margin:4px 0 8px"></p><button class="pri" id="pon">Turn on push notifications</button><button class="ghost" id="pof">Turn off on this device</button></div><div class="pagepad">${swHtml('n1','Message sounds',!muted)}${swHtml('n2','Banner for new messages inside the app',S.toast)}${swHtml('n3','Birthday reminder',S.bday)}
   <div class="lbl">Volume</div><input id="nv" type="range" min="10" max="100" value="${Math.round(S.vol*100)}" aria-label="Volume"></div>
   <h4 class="sh">Tone</h4><div class="card2" role="radiogroup" aria-label="Notification tone">${list.map(([k,n])=>`<button class="row" role="radio" aria-checked="${S.tone===k}" data-t="${k}"><span class="mid"><b>${esc(n)}</b></span>${S.tone===k?'<span style="color:var(--ac);display:flex">'+ic('check')+'</span>':''}</button>`).join('')}</div>
   <div class="pagepad"><button class="pri" id="nu">Choose a sound from your device</button><input id="nf" type="file" accept="audio/*" hidden>${S.customName?'<button class="ghost" id="nr">Remove my sound</button>':''}</div>`;
- swBind('#n1',()=>!muted,v=>{muted=!v;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}});
+ pushUI();swBind('#n1',()=>!muted,v=>{muted=!v;try{localStorage.setItem('hearth-mute',muted?'1':'0')}catch(e){}});
  swBind('#n2',()=>S.toast,v=>{S.toast=v;saveS()});swBind('#n3',()=>S.bday,v=>{S.bday=v;saveS()});
  $('#nv').oninput=e=>{S.vol=e.target.value/100;saveS()};$('#nv').onchange=()=>playTone(S.tone);
  el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.tone=b.dataset.t;saveS();playTone(S.tone);subNotif()});
@@ -487,7 +488,7 @@ function pinPad(title,onDone,extra){const o=$('#lk');o.hidden=false;let v='';
  const draw=()=>{o.innerHTML=`<div class="lkbox"><h3>${esc(title)}</h3><div class="dots">${[0,1,2,3].map(i=>`<i class="${i<v.length?'f':''}"></i>`).join('')}</div><p class="err" id="lke" role="alert"></p><div class="pad">${[1,2,3,4,5,6,7,8,9,'x',0,'d'].map(k=>k==='x'?'<span></span>':`<button data-k="${k}" aria-label="${k==='d'?'Delete':k}">${k==='d'?ic('back'):k}</button>`).join('')}</div>${extra||''}</div>`;
   o.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{const k=b.dataset.k;if(k==='d')v=v.slice(0,-1);else if(v.length<4)v+=k;draw();
    if(v.length===4){const r=await onDone(v);if(r&&r.next){title=r.next;v='';draw()}else if(typeof r==='string'){v='';draw();$('#lke').textContent=r}else close()}});
-  const c=$('#lkc');if(c)c.onclick=close;const f=$('#lkf');if(f)f.onclick=()=>{delete S.lock;saveS();close();auth.signOut()}};
+  const c=$('#lkc');if(c)c.onclick=close;const f=$('#lkf');if(f)f.onclick=()=>{delete S.lock;saveS();close();pushOff().finally(()=>auth.signOut())}};
  draw()}
 function lockSet(){let first='';pinPad('Choose a 4-digit PIN',async v=>{if(!first){first=v;return{next:'Enter it again'}}if(v!==first){first='';return{next:'The PINs did not match. Choose a 4-digit PIN'}}
  const salt=Array.from(crypto.getRandomValues(new Uint8Array(8))).join('');S.lock={s:salt,h:await sha(salt+v)};saveS();toast('App lock is on');subPrivacy();return null},'<button class="ghost" id="lkc">Cancel</button>')}
@@ -543,7 +544,7 @@ function shrink(f,mx=PH[S.photo][0],q=PH[S.photo][1]){return new Promise((ok,no)
 function postTo(c,text,img,aud,fwd,rep,file,extra){if(fwd&&!text&&!img&&!aud&&!file&&!extra){toast('This kind of message cannot be forwarded yet.');return}const cr=db.collection('chats').doc(c.id),b=db.batch();
  b.set(cr.collection('messages').doc(),{from:me.uid,text,img,audio:aud||null,reply:rep||null,fwd:!!fwd,at:FV.serverTimestamp(),readBy:[me.uid],...(file?{file}:{}),...(extra||{})});
  const up={lastFrom:me.uid,lastText:text||(extra&&extra.call?'Voice call':extra&&extra.gif?'GIF':extra&&extra.st?'Sticker':aud?'Voice note':file?file.name:'Photo'),lastAt:FV.serverTimestamp()};c.members.forEach(u=>{if(u!==me.uid)up['unread.'+u]=FV.increment(1)});
- b.update(cr,up);b.commit().catch(e=>failSend({c,text,img,aud,fwd,rep,file,extra},e))}
+ b.update(cr,up);b.commit().then(()=>{if(!(extra&&extra.call)&&c.members.length>1)notifyPush({kind:'chat',chatId:c.id})}).catch(e=>failSend({c,text,img,aud,fwd,rep,file,extra},e))}
 /* ---- P1: documents, upload progress, failed-send retry (free plan: chunked Firestore docs) ---- */
 const FAIL=new Map(),UPL=new Map(),FC=new Map();let fq=0;
 const MAXF=5000000,CH=700000,BLOCK=/\.(exe|msi|bat|cmd|com|scr|apk|jar|vbs|ps1|js|sh|dll|lnk)$/i;
@@ -645,7 +646,7 @@ async function startCall(c){if(CALL||INC)return toast('You are already in a call
  callUI({name:CALL.name,uid:peer,status:'Calling…',btns:'<button class="cbtn end" id="cend">End</button>'});$('#cend').onclick=()=>endCall('cancelled');
  try{const pc=mkPC();CALL.pc=pc;stream.getTracks().forEach(t=>pc.addTrack(t,stream));const off=await pc.createOffer();await pc.setLocalDescription(off);
   await ref.set({from:me.uid,to:peer,chat:c.id,state:'ringing',offer:{type:off.type,sdp:off.sdp},at:FV.serverTimestamp()});
-  if(!CALL||CALL.done)return;flushIce();CALL.uns.push(ref.onSnapshot(onCallDoc,()=>endCall('failed')));CALL.uns.push(iceListener(ref));
+  if(!CALL||CALL.done)return;notifyPush({kind:'call',chatId:c.id});flushIce();CALL.uns.push(ref.onSnapshot(onCallDoc,()=>endCall('failed')));CALL.uns.push(iceListener(ref));
   CALL.to=setTimeout(()=>{if(CALL&&!CALL.connected)endCall('missed')},45000)}
  catch(e){endCall('failed')}}
 async function onCallDoc(s){if(!CALL||!s.exists)return;const d=s.data();
@@ -928,6 +929,26 @@ function openComments(col,pid,staff){const cc=col.doc(pid).collection('comments'
 function reportDialog(cid,C){const x=modal(`<h3>Report ${esc(C.name)}</h3><p>Tell us what is wrong. Reports go to the Hearth owner.</p><label><span>Reason</span><select id="rw"><option>Spam</option><option>Abuse or harassment</option><option>Scam or fraud</option><option>Inappropriate content</option><option>Other</option></select></label><label><span>Details (optional)</span><textarea id="rn" rows="3" maxlength="200"></textarea></label><div class="acts"><button class="ghost" id="rx">Close</button><button class="pri" id="rs">Send report</button></div>`);
  $('#rx').onclick=x.close;$('#rs').onclick=async()=>{const why=($('#rw').value+($('#rn').value.trim()?': '+$('#rn').value.trim():'')).slice(0,300);
   try{await db.collection('reports').add({cid,by:me.uid,why,at:FV.serverTimestamp()});x.close();toast('Report sent. Thank you.')}catch(e){toast('Could not send the report.')}}}
+/* ---- P4: push notifications (Firebase Cloud Messaging + a free Cloudflare Worker) ---- */
+const PUSH_VAPID='BALI7bxrLRalJ48q-TEo6SiuLAe2lQot0LQcpN4AewI3atUCDX_4b2KJsTunKmg8ZmAVks7Pl5ySIaDs_ojLM0o',PUSH_URL='https://hearth-push.parishprieststores.workers.dev';
+const pushSupported=()=>!!(PUSH_VAPID&&PUSH_URL&&'Notification' in window&&'serviceWorker' in navigator&&window.firebase&&firebase.messaging&&firebase.messaging.isSupported&&firebase.messaging.isSupported());
+const shaHex=async s=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).slice(0,20).map(b=>b.toString(16).padStart(2,'0')).join('');
+async function pushRegister(){const reg=await navigator.serviceWorker.ready;const t=await firebase.messaging().getToken({vapidKey:PUSH_VAPID,serviceWorkerRegistration:reg});if(!t)throw new Error('no token');
+ const id=await shaHex(t);await db.collection('users').doc(me.uid).collection('devices').doc(id).set({token:t,ua:(navigator.userAgent||'').slice(0,120),at:FV.serverTimestamp()});try{localStorage.setItem('hearth_push',id)}catch(e){}return id}
+async function pushEnable(){if(!PUSH_VAPID||!PUSH_URL)return toast('Push is not set up for this copy of Hearth yet.');
+ if(!pushSupported())return toast('This browser cannot do push. On iPhone, add Hearth to the Home Screen first.');
+ const p=await Notification.requestPermission();if(p!=='granted')return toast('Notifications are blocked. Allow them in your browser settings for this site.');
+ try{await pushRegister();toast('Push notifications are on for this device')}catch(e){toast('Could not turn on push notifications.')}pushUI()}
+async function pushOff(){try{const id=localStorage.getItem('hearth_push');if(id&&me)await db.collection('users').doc(me.uid).collection('devices').doc(id).delete().catch(()=>{});localStorage.removeItem('hearth_push')}catch(e){}
+ try{if(window.firebase&&firebase.messaging&&firebase.messaging.isSupported&&firebase.messaging.isSupported())await firebase.messaging().deleteToken()}catch(e){}}
+function pushRefresh(){if(pushSupported()&&Notification.permission==='granted'&&localStorage.getItem('hearth_push'))pushRegister().catch(()=>{})}
+function notifyPush(o){if(!PUSH_URL||!auth.currentUser)return;auth.currentUser.getIdToken().then(t=>fetch(PUSH_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...o,idToken:t}),keepalive:true})).catch(()=>{})}
+function pushUI(){const st=$('#pst'),on=$('#pon'),off=$('#pof');if(!st)return;
+ if(!PUSH_VAPID||!PUSH_URL){st.textContent='Not set up yet. The Hearth owner must finish the push setup first.';on.hidden=true;off.hidden=true;return}
+ if(!pushSupported()){st.textContent='This browser cannot receive push. On iPhone, add Hearth to the Home Screen first.';on.hidden=true;off.hidden=true;return}
+ const active=Notification.permission==='granted'&&!!localStorage.getItem('hearth_push');
+ st.textContent=Notification.permission==='denied'?'Blocked in your browser settings for this site.':active?'On for this device. You get alerts for new messages and calls when Hearth is closed.':'Off. Turn it on to get alerts when Hearth is closed.';
+ on.hidden=active;off.hidden=!active;on.onclick=pushEnable;off.onclick=async()=>{await pushOff();toast('Push notifications are off for this device');pushUI()}}
 const callLine=(c,mine)=>{const r=c.r;return r==='ended'?'Voice call · '+Math.floor(c.d/60)+':'+String(c.d%60).padStart(2,'0'):r==='declined'?(mine?'Call declined':'You declined a call'):r==='cancelled'?(mine?'Cancelled call':'Missed voice call'):(mine?'No answer':'Missed voice call')};
 function post(text,img,aud){postTo(cur,text,img,aud,false,replyTo);replyTo=null;paintReply()}
 let msgLimit=50,newBelow=0,prevLen=0,keepScroll=null,peerSeen=0,unPeer=null,sel=null,lastDk='',MS={},lastSnap=null,flt={q:'',star:false},openUn=0,replyTo=null;

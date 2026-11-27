@@ -102,3 +102,26 @@ async function cacheFirst(request, event) {
   }
   return fresh;
 }
+
+// ---- Push notifications (sent by the Hearth push worker through Firebase Cloud Messaging) ----
+self.addEventListener('push', (event) => {
+  let p = {};
+  try { p = event.data ? event.data.json() : {}; } catch (e) { p = {}; }
+  const d = p.data || p.notification || p;
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (wins.some((c) => c.visibilityState === 'visible')) return; // the app is open and showing; it plays its own alert
+    await self.registration.showNotification(d.title || 'Hearth', {
+      body: d.body || '', icon: './icon-192.png', badge: './icon-192.png',
+      tag: d.tag || undefined, renotify: !!d.tag, data: { url: d.url || './' }
+    });
+  })());
+});
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL((event.notification.data && event.notification.data.url) || './', self.registration.scope).href;
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) { if ('focus' in c) return c.focus(); }
+    return self.clients.openWindow(url);
+  }));
+});
